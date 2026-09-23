@@ -11,8 +11,6 @@
       --card-border: rgba(255,255,255,0.08);
       --text: #e7e9ee;
       --muted: #7b8394;
-      --green: #22c55e;
-      --danger: #ff5566;
     }
     * { box-sizing: border-box; }
     html, body {
@@ -46,95 +44,15 @@
     p {
       color: var(--muted);
       line-height: 1.6;
-      margin: 0 0 18px;
+      margin: 0;
       text-align: center;
-    }
-    .actions {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    button {
-      appearance: none;
-      border: 1px solid var(--card-border);
-      background: transparent;
-      color: var(--text);
-      padding: 10px 16px;
-      border-radius: 10px;
-      font: inherit;
-      cursor: pointer;
-    }
-    button.primary {
-      background: var(--green);
-      border-color: var(--green);
-      color: #06210f;
-      font-weight: bold;
-    }
-    button.warn {
-      border-color: var(--danger);
-      color: var(--danger);
     }
   </style>
 </head>
 <body>
   <div class="app">
     <h1>STREETLINE</h1>
-    <p>Background music is now tied to the mute toggle and app state.</p>
-    <div class="actions">
-      <button class="primary" onclick="startMusic()">PLAY MUSIC</button>
-      <button onclick="toggleMute()" id="muteBtn">MUTE</button>
-    </div>
+    <p>Streetline is ready.</p>
   </div>
-
-  <script>
-    const SAVE_KEY = "streetline_save_v2";
-    const MUTE_KEY = "streetline_muted_v1";
-
-    let muted = false;
-    try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch (e) {}
-
-    const bgMusic = new Audio("./streetline.mp3");
-    bgMusic.loop = true;
-    bgMusic.volume = 0.15;
-    bgMusic.preload = "auto";
-
-    function startMusic() {
-      if (muted) return;
-
-      const p = bgMusic.play();
-      if (p && typeof p.catch === "function") {
-        p.catch(() => {});
-      }
-    }
-
-    function toggleMute() {
-      muted = !muted;
-
-      try {
-        localStorage.setItem(MUTE_KEY, muted ? "1" : "0");
-      } catch (e) {}
-
-      if (muted) {
-        bgMusic.pause();
-      } else if (window.appStarted) {
-        startMusic();
-      }
-
-      const muteBtn = document.getElementById("muteBtn");
-      if (muteBtn) {
-        muteBtn.textContent = muted ? "UNMUTE" : "MUTE";
-      }
-    }
-
-    const muteBtn = document.getElementById("muteBtn");
-    if (muteBtn) {
-      muteBtn.textContent = muted ? "UNMUTE" : "MUTE";
-    }
-
-    window.appStarted = false;
-    window.startMusic = startMusic;
-    window.toggleMute = toggleMute;
-  </script>
 </body>
 </html>
