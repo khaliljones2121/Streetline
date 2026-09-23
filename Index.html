@@ -471,9 +471,15 @@ const DRUGS = [
 // ---- Save / mute persistence ----
 const SAVE_KEY = "streetline_save_v2";
 const MUTE_KEY = "streetline_muted_v1";
+
 let muted = false;
 try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch (e) {}
 
+const bgMusic = new Audio("./streetline.mp3");
+bgMusic.loop = true;
+bgMusic.preload = "auto";
+bgMusic.volume = 0.15;
+  
 function saveGame() {
   if (!appStarted || !state || state.over) return;
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
