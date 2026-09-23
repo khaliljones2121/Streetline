@@ -498,7 +498,21 @@ function clearSave() {
 }
 function toggleMute() {
   muted = !muted;
-  try { localStorage.setItem(MUTE_KEY, muted ? "1" : "0"); } catch (e) {}
+
+  try {
+    localStorage.setItem(MUTE_KEY, muted ? "1" : "0");
+  } catch (e) {}
+
+  if (muted) {
+    bgMusic.pause();
+  } else {
+    const playAttempt = bgMusic.play();
+
+    if (playAttempt && typeof playAttempt.catch === "function") {
+      playAttempt.catch(() => {});
+    }
+  }
+
   render();
 }
 
