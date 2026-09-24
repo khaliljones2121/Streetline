@@ -467,19 +467,24 @@ const DRUGS = [
   { key: "crank",  name: "Ice",  base: 180, vol: 0.8 },
   { key: "tar",    name: "Dope", base: 420, vol: 0.9 },
 ];
+// The 4 unlockable towns use their own local slang for the same product.
+const LOCATION_SLANG = {
+  "Pleasantville": { grass: "Loud",   pills: "Footballs", powder: "Snow",   crank: "Crank", tar: "Boy" },
+  "Absecon":       { grass: "Gas",    pills: "Zannies",   powder: "Powder", crank: "Tina",  tar: "Smack" },
+  "Mays Landing":  { grass: "Reggie", pills: "Beans",     powder: "Flour",  crank: "Crystal", tar: "Brown" },
+  "Margate":       { grass: "Kush",   pills: "Xans",      powder: "Coke",   crank: "Glass", tar: "China White" },
+};
+function localName(key) {
+  const overrides = LOCATION_SLANG[state.location];
+  return (overrides && overrides[key]) || nameOf(key);
+}
 
 // ---- Save / mute persistence ----
 const SAVE_KEY = "streetline_save_v2";
 const MUTE_KEY = "streetline_muted_v1";
-
 let muted = false;
 try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch (e) {}
 
-const bgMusic = new Audio("./streetline-theme (2) (1).mp3");
-bgMusic.loop = true;
-bgMusic.preload = "auto";
-bgMusic.volume = 0.15;
-  
 function saveGame() {
   if (!appStarted || !state || state.over) return;
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
@@ -498,21 +503,7 @@ function clearSave() {
 }
 function toggleMute() {
   muted = !muted;
-
-  try {
-    localStorage.setItem(MUTE_KEY, muted ? "1" : "0");
-  } catch (e) {}
-
-  if (muted) {
-    bgMusic.pause();
-  } else {
-    const playAttempt = bgMusic.play();
-
-    if (playAttempt && typeof playAttempt.catch === "function") {
-      playAttempt.catch(() => {});
-    }
-  }
-
+  try { localStorage.setItem(MUTE_KEY, muted ? "1" : "0"); } catch (e) {}
   render();
 }
 
@@ -609,6 +600,9 @@ function newGame(perkId, customName, avatarId) {
     bank: 0,
     debt: 4000,
     capacity: 60,
+    capacityLevel: 0,
+    wantedStreak: 0,
+    weaponLevel: 0,
     heat: 0,
     location: LOCATIONS[0],
     inventory: {},
@@ -665,6 +659,9 @@ function continueGame() {
   if (!state.avatarId) state.avatarId = AVATAR_STYLES[0].id;
   if (!state.perkId) state.perkId = PERKS[0].id;
   if (!state.playerName) state.playerName = "Hustler";
+  if (state.capacityLevel === undefined) state.capacityLevel = 0;
+  if (state.wantedStreak === undefined) state.wantedStreak = 0;
+  if (state.weaponLevel === undefined) state.weaponLevel = 0;
   render();
 }
 
@@ -786,7 +783,7 @@ function buy(key) {
   bumpAllContacts(loc, 1);
   state.stats.totalSpent += cost;
   sndBuy();
-  addLog(`Bought ${qty} ${nameOf(key)} for $${cost.toLocaleString()}.`);
+  addLog(`Bought ${qty} ${localName(key)} for $${cost.toLocaleString()}.`);
   render();
 }
 
@@ -800,7 +797,7 @@ function sell(key) {
   bumpAllContacts(state.location, 1);
   state.stats.totalRevenue += total;
   sndSell();
-  addLog(`Sold ${qty} ${nameOf(key)} for $${total.toLocaleString()}.`);
+  addLog(`Sold ${qty} ${localName(key)} for $${total.toLocaleString()}.`);
   render();
 }
 
@@ -832,6 +829,38 @@ function payDebt() {
   render();
 }
 
+function bagUpgradeCost() { return 400 + state.capacityLevel * 300; }
+function upgradeBag() {
+  const cost = bagUpgradeCost();
+  if (state.cash < cost) { sndFail(); addLog("Not enough cash to upgrade the bag."); render(); return; }
+  state.cash -= cost;
+  state.capacityLevel++;
+  state.capacity += 20;
+  sndGood();
+  addLog(`Upgraded the stash bag. Capacity now ${state.capacity}.`);
+  render();
+}
+
+// ---- Weapons / protection (affects gang fight outcomes) ----
+const WEAPONS = [
+  { name: "Unarmed", cost: 0,    winBonus: 0,    takeMult: 1.0, lossMult: 1.0 },
+  { name: "Knife",   cost: 600,  winBonus: 0.10, takeMult: 1.1, lossMult: 0.9 },
+  { name: "Pistol",  cost: 1500, winBonus: 0.20, takeMult: 1.25, lossMult: 0.75 },
+  { name: "Strap",   cost: 3000, winBonus: 0.30, takeMult: 1.5,  lossMult: 0.6 },
+];
+function currentWeapon() { return WEAPONS[state.weaponLevel] || WEAPONS[0]; }
+function nextWeapon() { return WEAPONS[state.weaponLevel + 1] || null; }
+function upgradeWeapon() {
+  const next = nextWeapon();
+  if (!next) { addLog("Already carrying the best protection there is."); render(); return; }
+  if (state.cash < next.cost) { sndFail(); addLog("Not enough cash for that piece."); render(); return; }
+  state.cash -= next.cost;
+  state.weaponLevel++;
+  sndGood();
+  addLog(`Picked up a ${next.name}. Better odds if it comes to a fight.`);
+  render();
+}
+
 function travel(loc) {
   if (loc === state.location) return;
   state.location = loc;
@@ -860,6 +889,20 @@ function advanceDay() {
     clearSave();
     render();
     return;
+  }
+
+  if (state.heat >= 90) {
+    state.wantedStreak = (state.wantedStreak || 0) + 1;
+  } else {
+    state.wantedStreak = 0;
+  }
+  if (state.wantedStreak >= 3 && state.bank > 0) {
+    const seized = Math.round(state.bank * 0.25);
+    state.bank -= seized;
+    state.heat = Math.max(0, state.heat - 40);
+    state.wantedStreak = 0;
+    sndBad();
+    addLog(`You're too hot. Cops raided your bank account and took $${seized.toLocaleString()}.`);
   }
 
   const mod = LOCATION_MODS[state.location] || { policeMult: 1, gangMult: 1 };
@@ -933,15 +976,16 @@ function resolveGang(choice) {
       addLog(`They caught you. Roughed up, took $${cashLoss.toLocaleString()} and some product.`);
     }
   } else if (choice === "fight") {
-    const win = Math.random() < 0.45;
+    const weapon = currentWeapon();
+    const win = Math.random() < (0.45 + weapon.winBonus);
     if (win) {
-      const take = Math.round(80 + Math.random()*200);
+      const take = Math.round((80 + Math.random()*200) * weapon.takeMult);
       state.cash += take;
       state.stats.fightsWon++;
       sndGood();
-      addLog(`Won the scrap, took $${take.toLocaleString()} off them.`);
+      addLog(`Won the scrap${weapon.name !== "Unarmed" ? ` with the ${weapon.name}` : ""}, took $${take.toLocaleString()} off them.`);
     } else {
-      const cashLoss = Math.round(state.cash * 0.35);
+      const cashLoss = Math.round(state.cash * 0.35 * weapon.lossMult);
       state.cash -= cashLoss;
       state.stats.fightsLost++;
       sndBad();
@@ -980,10 +1024,36 @@ function sparklineSVG(history) {
   `;
 }
 
+function computeBadges() {
+  const s = state.stats;
+  const nw = netWorth();
+  const maxTrust = Math.max(0, ...Object.values(state.contactTrust || {}));
+  const badges = [];
+  if (nw >= 0) badges.push({ label: "Debt Free", desc: "Ended the run in the black." });
+  if (s.policeCaught === 0 && s.gangCaught === 0) badges.push({ label: "Untouchable", desc: "Never once got caught." });
+  if (s.totalSpent >= 20000) badges.push({ label: "Big Spender", desc: "Moved $20,000+ in product." });
+  if (s.fightsWon >= 3 && s.fightsLost === 0) badges.push({ label: "Sharp Shooter", desc: "Won every fight you had." });
+  if (maxTrust >= 100) badges.push({ label: "Maxed Out", desc: "Earned a contact's full trust." });
+  if (state.justUnlocked) badges.push({ label: "Trailblazer", desc: `Opened up ${state.justUnlocked}.` });
+  if (state.capacityLevel >= 2) badges.push({ label: "Bigger Bag", desc: "Upgraded the stash bag twice or more." });
+  return badges;
+}
+
 function statsBreakdown() {
   const s = state.stats;
   const profit = s.totalRevenue - s.totalSpent;
+  const badges = computeBadges();
   return `
+    ${badges.length ? `
+    <div class="section-label">BADGES EARNED</div>
+    <div class="card">
+      ${badges.map(b => `
+        <div class="statline" style="align-items:flex-start;">
+          <span style="color:var(--green);font-weight:bold;">🏅 ${b.label}</span>
+          <span style="text-align:right;">${b.desc}</span>
+        </div>
+      `).join("")}
+    </div>` : ""}
     <div class="section-label">NET WORTH OVER TIME</div>
     <div class="card">${sparklineSVG(state.netWorthHistory)}</div>
     <div class="section-label">RUN BREAKDOWN</div>
@@ -1015,11 +1085,13 @@ function mktLabel(loc) {
 
 function statusBar() {
   const now = new Date();
-  const h = now.getHours() % 12 || 12;
+  const h24 = now.getHours();
+  const h = h24 % 12 || 12;
   const m = String(now.getMinutes()).padStart(2, "0");
+  const isNight = h24 >= 19 || h24 < 6;
   return `
     <div class="statusbar">
-      <span>${h}:${m}</span>
+      <span>${isNight ? "🌙" : "☀️"} ${h}:${m}</span>
       <span class="appname">STREETLINE</span>
       <span class="right">
         <button class="mutebtn" onclick="toggleMute()">${muted ? "🔇" : "🔊"}</button>
@@ -1194,6 +1266,7 @@ function renderTop() {
       <div><span class="label">STASH</span>${invUsed()}/${state.capacity}</div>
       <div><span class="label">NET</span>$${netWorth().toLocaleString()}</div>
     </div>
+    ${state.wantedStreak > 0 ? `<div style="font-size:0.74rem;color:var(--danger);margin:-6px 0 10px;">⚠ WANTED — heat's been maxed ${state.wantedStreak} day${state.wantedStreak>1?'s':''} straight. Cool off or the bank gets hit.</div>` : ""}
   `;
 }
 
@@ -1207,7 +1280,7 @@ function renderDeal() {
     return `
       <div class="card">
         <div class="cardrow-top">
-          <span class="name">${d.name}</span>
+          <span class="name">${localName(d.key)}</span>
           <span class="price">$${buyP}</span>
         </div>
         <div class="cardrow-sub">
@@ -1282,9 +1355,9 @@ function renderMap() {
 
 function renderStash() {
   return `
-    <div class="section-label">BANK — SAFE FROM STREET RISK</div>
+    <div class="section-label">BANK — SAFER THAN CASH ON HAND</div>
     <div class="card">
-      <p style="font-size:0.85rem;color:var(--muted);margin:0 0 10px;">Cops and gangs only ever come for cash on hand.</p>
+      <p style="font-size:0.85rem;color:var(--muted);margin:0 0 10px;">Cops and gangs go for your pocket first. Stay maxed on heat too many days running, though, and they'll come for the bank too.</p>
       <div class="amtfield">
         <input type="number" inputmode="numeric" value="${state.bankAmt}" min="0" oninput="setBankAmt(this.value)">
         <button class="btn" onclick="bankDeposit()">DEPOSIT</button>
@@ -1297,6 +1370,18 @@ function renderStash() {
         <button class="btn" onclick="setBankAmt(1000)">$1000</button>
         <button class="btn" onclick="setBankAmt(Math.max(state.cash,state.bank))">MAX</button>
       </div>
+    </div>
+    <div class="section-label">STASH BAG</div>
+    <div class="card">
+      <p style="font-size:0.85rem;color:var(--muted);margin:0 0 10px;">Current capacity: ${state.capacity}. Bigger bag, bigger runs.</p>
+      <button class="btn btn-wide btn-green" onclick="upgradeBag()">UPGRADE BAG — $${bagUpgradeCost().toLocaleString()} (+20 cap)</button>
+    </div>
+    <div class="section-label">PROTECTION</div>
+    <div class="card">
+      <p style="font-size:0.85rem;color:var(--muted);margin:0 0 10px;">Carrying: <span style="color:var(--text);font-weight:bold;">${currentWeapon().name}</span>. Better protection means better odds if a gang fight breaks out.</p>
+      ${nextWeapon()
+        ? `<button class="btn btn-wide btn-green" onclick="upgradeWeapon()">GET A ${nextWeapon().name.toUpperCase()} — $${nextWeapon().cost.toLocaleString()}</button>`
+        : `<div style="font-size:0.82rem;color:var(--green);">Already carrying the best protection there is.</div>`}
     </div>
     <div class="section-label">INVENTORY</div>
     <div class="card">
@@ -1363,7 +1448,7 @@ function renderEvent(ev) {
         <div class="event-actions">
           <button class="btn" onclick="resolveGang('pay')">PAY UP</button>
           <button class="btn" onclick="resolveGang('run')">RUN</button>
-          <button class="btn" onclick="resolveGang('fight')">FIGHT</button>
+          <button class="btn" onclick="resolveGang('fight')">FIGHT (${currentWeapon().name})</button>
         </div>
       </div>
     `;
