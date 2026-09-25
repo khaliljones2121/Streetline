@@ -399,7 +399,22 @@
 
 <script>
 const BASE_LOCATIONS = ["Bungalow Park", "Back Maryland", "Carver Hall", "Venice Park", "Downtown"];
-const EXTRA_LOCATIONS = ["Pleasantville", "Absecon", "Mays Landing", "Margate"]; // unlocked in order, one per clean win
+const EXTRA_LOCATIONS = [
+  "Pleasantville",
+  "Absecon",
+  "Mays Landing",
+  "Margate",
+  "Atlantic City Marina",
+  "Chelsea",
+  "Ducktown",
+  "Westside",
+  "Gardner's Basin",
+  "Boardwalk",
+  "Ocean Heights",
+  "Ventnor",
+  "Brigantine",
+  "Northfield"
+];
 let LOCATIONS = BASE_LOCATIONS.slice();
 const LOCATION_MODS = {
   "Downtown":      { priceMult: 1.25, volMult: 1.0, policeMult: 1.5, gangMult: 0.8, heatMult: 1.0 },
@@ -410,7 +425,17 @@ const LOCATION_MODS = {
   "Pleasantville": { priceMult: 1.1,  volMult: 1.1, policeMult: 1.1, gangMult: 1.1, heatMult: 1.0 },
   "Absecon":       { priceMult: 1.15, volMult: 1.2, policeMult: 1.2, gangMult: 1.0, heatMult: 1.1 },
   "Mays Landing":  { priceMult: 0.95, volMult: 1.4, policeMult: 0.7, gangMult: 1.3, heatMult: 0.9 },
-  "Margate":       { priceMult: 1.5,  volMult: 1.0, policeMult: 1.6, gangMult: 0.6, heatMult: 1.2 },
+  "Margate":       { priceMult: 1.5,  volMult: 1.0, policeMult: 1.6, gangMult: 0.6, heatMult: 1.2 },  
+  "Atlantic City Marina": { priceMult: 1.35, volMult: 1.1, policeMult: 1.25, gangMult: 1.05, heatMult: 1.1 },
+  "Chelsea":             { priceMult: 1.05, volMult: 1.0, policeMult: 1.0, gangMult: 1.1, heatMult: 1.0 },
+  "Ducktown":            { priceMult: 0.80, volMult: 1.5, policeMult: 0.9, gangMult: 1.35, heatMult: 1.1 },
+  "Westside":            { priceMult: 0.85, volMult: 1.4, policeMult: 1.05, gangMult: 1.45, heatMult: 1.15 },
+  "Gardner's Basin":     { priceMult: 1.30, volMult: 0.9, policeMult: 1.15, gangMult: 0.9, heatMult: 0.9 },
+  "Boardwalk":           { priceMult: 1.50, volMult: 1.0, policeMult: 1.6, gangMult: 0.75, heatMult: 1.2 },
+  "Ocean Heights":       { priceMult: 0.95, volMult: 0.8, policeMult: 0.75, gangMult: 0.65, heatMult: 0.7 },
+  "Ventnor":             { priceMult: 1.40, volMult: 0.9, policeMult: 1.25, gangMult: 0.7, heatMult: 0.9 },
+  "Brigantine":          { priceMult: 1.25, volMult: 0.8, policeMult: 0.85, gangMult: 0.6, heatMult: 0.7 },
+  "Northfield":          { priceMult: 0.85, volMult: 0.7, policeMult: 0.7, gangMult: 0.55, heatMult: 0.6 },
 };
 const LOCATION_FLAVOR = {
   "Downtown": "Boardwalk lights, casino money — and cops on every corner.",
