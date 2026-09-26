@@ -107,6 +107,12 @@
     padding: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer;
   }
   .avbtn-sel { border-color: var(--green); box-shadow: 0 0 0 2px rgba(34,197,94,0.25); }
+  .avbtn { position: relative; }
+  .avbtn-locked { opacity: 0.4; cursor: not-allowed; }
+  .avlock { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+  .colorrow { display: flex; gap: 12px; margin-bottom: 18px; }
+  .colorbtn { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--card-border); cursor: pointer; }
+  .colorbtn-sel { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.3); }
   .perkcard {
     display: block; width: 100%; text-align: left; background: var(--card);
     border: 2px solid var(--card-border); border-radius: 10px; padding: 11px 13px;
@@ -447,6 +453,16 @@ const LOCATION_FLAVOR = {
   "Absecon": "Suburban and jumpy. Good money if you can stomach the risk.",
   "Mays Landing": "Backroads and pine barrens. Wild prices, wilder company.",
   "Margate": "Old shore money. Rich turf, and the cops know every face on it.",
+  "Atlantic City Marina": "Yachts and marina money. Quiet docks hide a lot of traffic.",
+  "Chelsea": "Working blocks near the bay. Steady, unremarkable, easy to move through.",
+  "Ducktown": "Old Italian blocks, tight-knit and watchful. Wild money if you fit in.",
+  "Westside": "Rougher blocks, rougher odds. Money's good if you survive it.",
+  "Gardner's Basin": "Fishing docks and tourist boats. Slower pace, steady money.",
+  "Boardwalk": "Tourist money and bright lights. Eyes everywhere, cash everywhere too.",
+  "Ocean Heights": "Quiet suburbs, manicured lawns. Safest streets you'll work.",
+  "Ventnor": "Quiet beach town, old money close by. Good prices if you know somebody.",
+  "Brigantine": "Island town, one bridge in and out. Everybody notices a stranger.",
+  "Northfield": "Quiet inland town, off the tourist maps. Low key, low heat.",
 };
 const CONTACTS = {
   "Bungalow Park": [
@@ -494,18 +510,59 @@ const CONTACTS = {
     { role: "market",    name: "Coral",   line: "Moves in the richest circles on this stretch of coast." },
     { role: "muscle",    name: "Big Sal", line: "Old-school muscle. Respected up and down Margate." },
   ],
+  "Atlantic City Marina": [
+    { role: "connector", name: "Skipper", line: "Runs the docks, knows every boat that comes and goes." },
+    { role: "market",    name: "Pearl",   line: "Deals with the yacht crowd, prices to match." },
+    { role: "muscle",    name: "Ballast", line: "Built like he never lost his sea legs. Hard to knock down." },
+  ],
+  "Chelsea": [
+    { role: "connector", name: "Milo",    line: "Knows the routes better than the cops do." },
+    { role: "market",    name: "Ray",     line: "Fair dealer, fair prices, no drama." },
+    { role: "muscle",    name: "Hutch",   line: "Quiet but quick to move when trouble starts." },
+  ],
+  "Ducktown": [
+    { role: "connector", name: "Sal",     line: "Everybody's uncle. Knows who's new before you do." },
+    { role: "market",    name: "Nina",    line: "Runs numbers out of the back of the deli." },
+    { role: "muscle",    name: "Vinny",   line: "Old neighborhood muscle, doesn't miss much." },
+  ],
+  "Westside": [
+    { role: "connector", name: "Reek",    line: "Knows which blocks are hot before anyone else." },
+    { role: "market",    name: "Cree",    line: "Moves product fast, no questions." },
+    { role: "muscle",    name: "Bone",    line: "Nobody starts trouble twice with Bone around." },
+  ],
+  "Gardner's Basin": [
+    { role: "connector", name: "Dock",    line: "Watches the water, watches everything else too." },
+    { role: "market",    name: "Sandy",   line: "Runs deals out of the bait shop." },
+    { role: "muscle",    name: "Moose",   line: "Big, slow-moving, impossible to rattle." },
+  ],
+  "Boardwalk": [
+    { role: "connector", name: "Skee",    line: "Works the boardwalk games, knows every cop's schedule." },
+    { role: "market",    name: "Taffy",   line: "Sells to tourists and locals alike, prices to match the crowd." },
+    { role: "muscle",    name: "Ferris",  line: "Big as the wheel he's named for, twice as steady." },
+  ],
+  "Ocean Heights": [
+    { role: "connector", name: "Wes",     line: "Knows every neighborhood watch schedule by heart." },
+    { role: "market",    name: "Vale",    line: "Deals quiet, deals steady, never draws attention." },
+    { role: "muscle",    name: "Colt",    line: "Rarely needed out here, but always ready." },
+  ],
+  "Ventnor": [
+    { role: "connector", name: "Beck",    line: "Knows which houses are empty and which aren't." },
+    { role: "market",    name: "Opal",    line: "Old beach-town family, prices reflect the zip code." },
+    { role: "muscle",    name: "Reed",    line: "Calm, watchful, doesn't need to raise his voice." },
+  ],
+  "Brigantine": [
+    { role: "connector", name: "Gully",   line: "Knows the bridge schedule better than the toll booth." },
+    { role: "market",    name: "Pike",    line: "Fisherman by day, dealer by night." },
+    { role: "muscle",    name: "Barge",   line: "Slow to move, impossible to push around." },
+  ],
+  "Northfield": [
+    { role: "connector", name: "Fenn",    line: "Knows every back road out of the county." },
+    { role: "market",    name: "Ash",     line: "Quiet dealer, quiet town, quiet money." },
+    { role: "muscle",    name: "Crane",   line: "Tall, watchful, rarely needs to do more than stand there." },
+  ],
 };
 const TIER_WORDS = ["INTRO", "FAMILIAR", "TRUSTED", "CLOSE", "FAMILY"];
 
-// Avatar look and gameplay edge are picked independently now.
-const AVATAR_STYLES = [
-  { id: "cap",      wide: false, hair: `<path d="M15 15 Q32 1 49 15 L49 21 L15 21 Z" fill="#22c55e"/>` },
-  { id: "pony",     wide: false, hair: `<path d="M17 12 Q32 1 47 12 L47 23 L17 23 Z" fill="#22c55e"/><path d="M45 17 Q56 26 49 42 Q44 30 40 21 Z" fill="#22c55e"/>` },
-  { id: "short",    wide: false, hair: `<path d="M16 15 Q32 9 48 15 L48 18 L16 18 Z" fill="#22c55e"/>` },
-  { id: "long",     wide: false, hair: `<path d="M15 12 Q32 1 49 12 L51 36 L44 36 L44 19 Q32 10 20 19 L20 36 L13 36 Z" fill="#22c55e"/>` },
-  { id: "broad",    wide: true,  hair: `` },
-  { id: "bandana",  wide: false, hair: `<path d="M14 16 L50 16 L50 22 L14 22 Z" fill="#22c55e"/><path d="M44 19 L55 13 L55 20 Z" fill="#22c55e"/>` },
-];
 const PERKS = [
   { id: "connector", label: "Street Smart", desc: "+15 trust with every connector to start — safer streets from day one." },
   { id: "market",    label: "Sharp Mind",   desc: "+15 trust with every market contact to start — better prices from day one." },
@@ -513,11 +570,68 @@ const PERKS = [
   { id: "debt",      label: "Light Debt",   desc: "Starts $1,000 lighter on debt." },
 ];
 
+const DRUGS = [
+  { key: "grass",  name: "Bud",  base: 40,  vol: 0.5 },
+  { key: "pills",  name: "Bars", base: 90,  vol: 0.6 },
+  { key: "powder", name: "Blow", base: 260, vol: 0.7 },
+  { key: "crank",  name: "Ice",  base: 180, vol: 0.8 },
+  { key: "tar",    name: "Dope", base: 420, vol: 0.9 },
+];
+// Each town uses its own local slang for the same product.
+const LOCATION_SLANG = {
+  "Pleasantville": { grass: "Loud",   pills: "Footballs", powder: "Snow",   crank: "Crank", tar: "Boy" },
+  "Absecon":       { grass: "Gas",    pills: "Zannies",   powder: "Powder", crank: "Tina",  tar: "Smack" },
+  "Mays Landing":  { grass: "Reggie", pills: "Beans",     powder: "Flour",  crank: "Crystal", tar: "Brown" },
+  "Margate":       { grass: "Kush",   pills: "Xans",      powder: "Coke",   crank: "Glass", tar: "China White" },
+  "Atlantic City Marina": { grass: "Chronic", pills: "Blues",   powder: "Fish Scale", crank: "Shards",  tar: "Tar" },
+  "Chelsea":              { grass: "Haze",    pills: "Blues",   powder: "Powder",     crank: "Speed",   tar: "Tar" },
+  "Ducktown":             { grass: "Broccoli",pills: "Peanuts", powder: "Sugar",      crank: "Go-Fast", tar: "Black" },
+  "Westside":             { grass: "Trees",   pills: "Footballs",powder: "White",     crank: "Fire",    tar: "Tar" },
+  "Gardner's Basin":      { grass: "Seaweed", pills: "Anchors", powder: "Salt",       crank: "Nitro",   tar: "Tar" },
+  "Boardwalk":            { grass: "Cotton",  pills: "Rockets", powder: "Powder",     crank: "Sparkle", tar: "Tar" },
+  "Ocean Heights":        { grass: "Herb",    pills: "Whites",  powder: "Cream",      crank: "Glass",   tar: "Brown" },
+  "Ventnor":              { grass: "Chron",   pills: "Pearls",  powder: "Snow",       crank: "Ice",     tar: "Tar" },
+  "Brigantine":           { grass: "Kelp",    pills: "Tabs",    powder: "Frost",      crank: "Jet",     tar: "Tar" },
+  "Northfield":           { grass: "Pine",    pills: "Chips",   powder: "Dust",       crank: "Static",  tar: "Tar" },
+};
+function localName(key) {
+  const overrides = LOCATION_SLANG[state.location];
+  return (overrides && overrides[key]) || nameOf(key);
+}
+
+// Avatar look, accent color, accessory, and gameplay edge are all picked independently.
+const AVATAR_STYLES = [
+  { id: "cap",     wide: false, unlockAt: 0, hair: c => `<path d="M15 15 Q32 1 49 15 L49 21 L15 21 Z" fill="${c}"/>` },
+  { id: "pony",    wide: false, unlockAt: 0, hair: c => `<path d="M17 12 Q32 1 47 12 L47 23 L17 23 Z" fill="${c}"/><path d="M45 17 Q56 26 49 42 Q44 30 40 21 Z" fill="${c}"/>` },
+  { id: "short",   wide: false, unlockAt: 0, hair: c => `<path d="M16 15 Q32 9 48 15 L48 18 L16 18 Z" fill="${c}"/>` },
+  { id: "long",    wide: false, unlockAt: 0, hair: c => `<path d="M15 12 Q32 1 49 12 L51 36 L44 36 L44 19 Q32 10 20 19 L20 36 L13 36 Z" fill="${c}"/>` },
+  { id: "broad",   wide: true,  unlockAt: 0, hair: c => `` },
+  { id: "bandana", wide: false, unlockAt: 0, hair: c => `<path d="M14 16 L50 16 L50 22 L14 22 Z" fill="${c}"/><path d="M44 19 L55 13 L55 20 Z" fill="${c}"/>` },
+  { id: "braids",  wide: false, unlockAt: 0, hair: c => `<path d="M16 13 Q32 2 48 13 L48 20 L16 20 Z" fill="${c}"/><path d="M18 19 L16 40 M25 20 L23 42 M39 20 L41 42 M46 19 L48 40" stroke="${c}" stroke-width="3" fill="none"/>` },
+  { id: "mohawk",  wide: false, unlockAt: 1, hair: c => `<path d="M27 2 L37 2 L35 20 L29 20 Z" fill="${c}"/>` },
+  { id: "hijab",   wide: false, unlockAt: 2, hair: c => `<path d="M13 24 Q13 4 32 4 Q51 4 51 24 L51 44 L42 44 L42 26 Q42 15 32 15 Q22 15 22 26 L22 44 L13 44 Z" fill="${c}"/>` },
+  { id: "beard",   wide: false, unlockAt: 3, hair: c => `<path d="M16 15 Q32 9 48 15 L48 18 L16 18 Z" fill="${c}"/><path d="M19 27 Q32 46 45 27 L45 32 Q32 48 19 32 Z" fill="${c}" opacity="0.85"/>` },
+];
+const AVATAR_COLORS = [
+  { id: "green", hex: "#22c55e" },
+  { id: "red",   hex: "#ff5566" },
+  { id: "blue",  hex: "#38bdf8" },
+  { id: "gold",  hex: "#facc15" },
+];
+const ACCESSORIES = [
+  { id: "none",  label: "None",     draw: () => "" },
+  { id: "chain", label: "Chain",    draw: () => `<path d="M22 40 Q32 48 42 40" stroke="#d4af37" stroke-width="2.5" fill="none"/><circle cx="32" cy="47" r="3" fill="#d4af37"/>` },
+  { id: "shades", label: "Shades",  draw: () => `<rect x="19" y="20" width="11" height="6" rx="2" fill="#0a0a0a"/><rect x="34" y="20" width="11" height="6" rx="2" fill="#0a0a0a"/><rect x="30" y="21" width="4" height="2" fill="#0a0a0a"/>` },
+];
+function avatarUnlocked(style) { return getUnlockedCount() >= style.unlockAt; }
+
 // Simple inline-SVG bust avatars — no external images allowed in published pages,
 // so each avatar is a distinct silhouette built from paths.
-function avatarSVG(avatarId, size) {
+function avatarSVG(avatarId, size, colorId, accessoryId) {
   const s = size || 48;
   const style = AVATAR_STYLES.find(a => a.id === avatarId) || AVATAR_STYLES[0];
+  const color = (AVATAR_COLORS.find(c => c.id === colorId) || AVATAR_COLORS[0]).hex;
+  const accessory = ACCESSORIES.find(a => a.id === accessoryId) || ACCESSORIES[0];
   const shoulders = style.wide
     ? `<path d="M4 62 C4 42 16 36 32 36 C48 36 60 42 60 62 Z" fill="#3a4150"/>`
     : `<path d="M8 62 C8 46 18 40 32 40 C46 40 56 46 56 62 Z" fill="#3a4150"/>`;
@@ -528,29 +642,13 @@ function avatarSVG(avatarId, size) {
       <g clip-path="url(#avclip-${style.id})">
         ${shoulders}
         <circle cx="32" cy="24" r="14" fill="#3a4150"/>
-        ${style.hair}
+        <circle cx="27" cy="25" r="1.4" fill="rgba(255,255,255,0.35)"/>
+        <circle cx="37" cy="25" r="1.4" fill="rgba(255,255,255,0.35)"/>
+        ${style.hair(color)}
+        ${accessory.draw()}
       </g>
     </svg>
   `;
-}
-
-const DRUGS = [
-  { key: "grass",  name: "Bud",  base: 40,  vol: 0.5 },
-  { key: "pills",  name: "Bars", base: 90,  vol: 0.6 },
-  { key: "powder", name: "Blow", base: 260, vol: 0.7 },
-  { key: "crank",  name: "Ice",  base: 180, vol: 0.8 },
-  { key: "tar",    name: "Dope", base: 420, vol: 0.9 },
-];
-// The 4 unlockable towns use their own local slang for the same product.
-const LOCATION_SLANG = {
-  "Pleasantville": { grass: "Loud",   pills: "Footballs", powder: "Snow",   crank: "Crank", tar: "Boy" },
-  "Absecon":       { grass: "Gas",    pills: "Zannies",   powder: "Powder", crank: "Tina",  tar: "Smack" },
-  "Mays Landing":  { grass: "Reggie", pills: "Beans",     powder: "Flour",  crank: "Crystal", tar: "Brown" },
-  "Margate":       { grass: "Kush",   pills: "Xans",      powder: "Coke",   crank: "Glass", tar: "China White" },
-};
-function localName(key) {
-  const overrides = LOCATION_SLANG[state.location];
-  return (overrides && overrides[key]) || nameOf(key);
 }
 
 // ---- Save / mute persistence ----
@@ -646,7 +744,7 @@ function skipSplash() {
   splashDone = true;
   render();
 }
-let creation = { name: "", avatarId: AVATAR_STYLES[0].id, perkId: PERKS[0].id };
+let creation = { name: "", avatarId: AVATAR_STYLES[0].id, perkId: PERKS[0].id, colorId: "green", accessoryId: "none" };
 
 function openCharacterSelect() {
   appStarted = false;
@@ -657,21 +755,31 @@ function backToLanding() {
   charSelectOpen = false;
   render();
 }
-function selectAvatar(id) { creation.avatarId = id; render(); }
+function selectAvatar(id) {
+  const style = AVATAR_STYLES.find(a => a.id === id);
+  if (!style || !avatarUnlocked(style)) { sndFail(); return; }
+  creation.avatarId = id;
+  render();
+}
+function selectColor(id) { creation.colorId = id; render(); }
+function selectAccessory(id) { creation.accessoryId = id; render(); }
 function selectPerk(id) { creation.perkId = id; render(); }
 function startWithCreation() {
   const nameEl = document.getElementById("creationName");
   if (nameEl) creation.name = nameEl.value;
   charSelectOpen = false;
-  newGame(creation.perkId, creation.name, creation.avatarId);
+  newGame(creation.perkId, creation.name, creation.avatarId, creation.colorId, creation.accessoryId);
 }
 
-function newGame(perkId, customName, avatarId) {
+function newGame(perkId, customName, avatarId, colorId, accessoryId) {
   appStarted = true;
   clearSave();
   LOCATIONS = computeLocations();
   const perk = PERKS.find(p => p.id === perkId) || PERKS[0];
-  const avatarStyle = AVATAR_STYLES.find(a => a.id === avatarId) || AVATAR_STYLES[0];
+  let avatarStyle = AVATAR_STYLES.find(a => a.id === avatarId) || AVATAR_STYLES[0];
+  if (!avatarUnlocked(avatarStyle)) avatarStyle = AVATAR_STYLES[0];
+  const colorStyle = AVATAR_COLORS.find(c => c.id === colorId) || AVATAR_COLORS[0];
+  const accessoryStyle = ACCESSORIES.find(a => a.id === accessoryId) || ACCESSORIES[0];
   const playerName = (customName && customName.trim()) ? customName.trim().slice(0, 20) : "Hustler";
   state = {
     day: 1,
@@ -698,6 +806,8 @@ function newGame(perkId, customName, avatarId) {
     debtAmt: 0,   // debt paydown amount
     playerName: playerName,
     avatarId: avatarStyle.id,
+    colorId: colorStyle.id,
+    accessoryId: accessoryStyle.id,
     perkId: perk.id,
     perkLabel: perk.label,
     stats: {
@@ -737,6 +847,8 @@ function continueGame() {
   }
   if (!state.netWorthHistory) state.netWorthHistory = [{ day: state.day, nw: netWorth() }];
   if (!state.avatarId) state.avatarId = AVATAR_STYLES[0].id;
+  if (!state.colorId) state.colorId = "green";
+  if (!state.accessoryId) state.accessoryId = "none";
   if (!state.perkId) state.perkId = PERKS[0].id;
   if (!state.playerName) state.playerName = "Hustler";
   if (state.capacityLevel === undefined) state.capacityLevel = 0;
@@ -1217,7 +1329,7 @@ function render() {
     screen.innerHTML = statusBar() + `
       <div class="hdr"><span>STREETLINE</span><span>RUN COMPLETE</span></div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-        ${avatarSVG(state.avatarId, 44)}
+        ${avatarSVG(state.avatarId, 44, state.colorId, state.accessoryId)}
         <h1 style="font-size:1.15rem;margin:0;">${state.playerName || "You"} — ${nw >= 0 ? "GOT OUT CLEAN" : "STILL IN THE HOLE"}</h1>
       </div>
       <div class="statrow">
@@ -1275,10 +1387,20 @@ function renderSplash() {
 }
 
 function renderCreateHustler() {
-  const avatarButtons = AVATAR_STYLES.map(a => `
-    <button class="avbtn ${creation.avatarId === a.id ? 'avbtn-sel' : ''}" onclick="selectAvatar('${a.id}')">
-      ${avatarSVG(a.id, 44)}
+  const avatarButtons = AVATAR_STYLES.map(a => {
+    const unlocked = avatarUnlocked(a);
+    return `
+    <button class="avbtn ${creation.avatarId === a.id ? 'avbtn-sel' : ''} ${unlocked ? '' : 'avbtn-locked'}" onclick="selectAvatar('${a.id}')">
+      ${avatarSVG(a.id, 44, creation.colorId, creation.accessoryId)}
+      ${unlocked ? '' : '<div class="avlock">🔒</div>'}
     </button>
+  `;
+  }).join("");
+  const colorButtons = AVATAR_COLORS.map(c => `
+    <button class="colorbtn ${creation.colorId === c.id ? 'colorbtn-sel' : ''}" style="background:${c.hex};" onclick="selectColor('${c.id}')"></button>
+  `).join("");
+  const accessoryButtons = ACCESSORIES.map(a => `
+    <button class="btn ${creation.accessoryId === a.id ? 'avbtn-sel' : ''}" style="flex:1;" onclick="selectAccessory('${a.id}')">${a.label}</button>
   `).join("");
   const perkCards = PERKS.map(p => `
     <button class="perkcard ${creation.perkId === p.id ? 'perkcard-sel' : ''}" onclick="selectPerk('${p.id}')">
@@ -1296,8 +1418,14 @@ function renderCreateHustler() {
         oninput="creation.name = this.value"
         style="width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--card-border);border-radius:8px;color:var(--text);font-family:inherit;font-size:0.95rem;padding:11px;margin-bottom:16px;text-align:center;">
 
-      <div class="section-label">AVATAR</div>
+      <div class="section-label">AVATAR ${getUnlockedCount() < 3 ? `<span class="muted" style="font-weight:normal;">— win clean runs to unlock more looks</span>` : ""}</div>
       <div class="avgrid">${avatarButtons}</div>
+
+      <div class="section-label">ACCENT COLOR</div>
+      <div class="colorrow">${colorButtons}</div>
+
+      <div class="section-label">ACCESSORY</div>
+      <div class="quickset" style="margin-bottom:18px;">${accessoryButtons}</div>
 
       <div class="section-label">EDGE</div>
       ${perkCards}
@@ -1319,7 +1447,7 @@ function renderLanding() {
       ${saved ? `
       <div class="card" style="margin-bottom:14px;">
         <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;">
-          ${avatarSVG(saved.avatarId || "cap", 40)}
+          ${avatarSVG(saved.avatarId || "cap", 40, saved.colorId, saved.accessoryId)}
           <div style="font-size:0.85rem;">${saved.playerName || "Run"} in progress — Day ${saved.day}/${saved.maxDays}, ${saved.location}, net $${(saved.cash + saved.bank - saved.debt).toLocaleString()}.</div>
         </div>
         <button class="btn btn-wide btn-green" onclick="continueGame()">CONTINUE RUN</button>
@@ -1354,7 +1482,7 @@ function renderLanding() {
 function renderTop() {
   return `
     <div class="playerbar">
-      ${avatarSVG(state.avatarId, 30)}
+      ${avatarSVG(state.avatarId, 30, state.colorId, state.accessoryId)}
       <span class="playerbar-name">${state.playerName || "Hustler"}</span>
     </div>
     <div class="hdr">
