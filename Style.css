@@ -2011,3 +2011,926 @@ border-bottom: 1px solid var(--card-border); padding-bottom: 16px;
   }
 
 }
+
+/* =========================================================
+   STREETLINE — LEVEL 1 CITY GPS REDESIGN
+   Paste this at the VERY BOTTOM of style.css
+   ========================================================= */
+
+/* ---------- CITY MAP SHELL ---------- */
+
+.street-map-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 285px;
+  gap:12px;
+  align-items:start;
+}
+
+.citymap-wrap{
+  min-width:0;
+}
+
+.citymap{
+  position:relative;
+  width:100%;
+  height:470px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:16px;
+  background:#10161a;
+  box-shadow:
+    0 18px 40px rgba(0,0,0,.35),
+    inset 0 0 0 1px rgba(255,255,255,.025);
+  isolation:isolate;
+  touch-action:none;
+}
+
+/* ---------- MAP WORLD ---------- */
+
+.map-world{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  transform-origin:50% 50%;
+  will-change:transform;
+}
+
+/* subtle cartographic grid */
+.citymap::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:20;
+  pointer-events:none;
+  background:
+    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:28px 28px;
+  mix-blend-mode:screen;
+}
+
+/* subtle vignette */
+.citymap::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:21;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 45%,transparent 42%,rgba(0,0,0,.18) 100%);
+}
+
+/* ---------- SVG BASE ---------- */
+
+.cityroads{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+  overflow:visible;
+  background:#20282a;
+}
+
+/* land */
+.cityroads .map-block{
+  fill:#293234;
+  stroke:#3c4748;
+  stroke-width:.22;
+}
+
+.cityroads .map-block-alt{
+  fill:#252e30;
+  stroke:#394446;
+  stroke-width:.22;
+}
+
+/* ---------- WATER ---------- */
+
+.cityroads .citywater{
+  fill:#142d34;
+  stroke:#42636a;
+  stroke-width:.35;
+}
+
+.cityroads .water-inner{
+  fill:none;
+  stroke:#537b82;
+  stroke-width:.35;
+  stroke-dasharray:1.5 1.5;
+  opacity:.7;
+}
+
+.water-label{
+  fill:#78999e;
+  font-size:2.25px;
+  font-weight:800;
+  letter-spacing:.18em;
+  opacity:.8;
+}
+
+/* ---------- PARKS ---------- */
+
+.cityroads .map-park{
+  fill:#263b34;
+  stroke:#4d6c5e;
+  stroke-width:.3;
+}
+
+.map-park-label{
+  fill:#718c7e;
+  font-size:1.8px;
+  font-weight:800;
+  letter-spacing:.12em;
+  opacity:.85;
+}
+
+/* ---------- PRIMARY ROADS ---------- */
+
+.road-highway{
+  fill:none;
+  stroke:#101618;
+  stroke-width:7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.road-highway-core{
+  fill:none;
+  stroke:#566064;
+  stroke-width:5.7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.road-main{
+  fill:none;
+  stroke:#111719;
+  stroke-width:5.2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.road{
+  fill:none;
+  stroke:#12191b;
+  stroke-width:3.1;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.road-minor{
+  fill:none;
+  stroke:#667175;
+  stroke-width:.55;
+  stroke-linecap:round;
+  opacity:.5;
+}
+
+/* center lane highlight */
+.road-highway-core{
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.4));
+}
+
+/* ---------- ROAD LABELS ---------- */
+
+.map-label-major{
+  fill:#a9b6b7;
+  font-size:3px;
+  font-weight:900;
+  letter-spacing:.18em;
+  paint-order:stroke;
+  stroke:#172023;
+  stroke-width:1.2px;
+}
+
+.map-label{
+  fill:#718083;
+  font-size:2.15px;
+  font-weight:800;
+  letter-spacing:.09em;
+  paint-order:stroke;
+  stroke:#1b2325;
+  stroke-width:.8px;
+  opacity:.95;
+}
+
+/* ---------- BRIDGES ---------- */
+
+.road-bridge{
+  fill:none;
+  stroke:#8b9697;
+  stroke-width:4;
+  stroke-linecap:round;
+  opacity:.75;
+}
+
+/* ---------- TERRITORY ZONES ---------- */
+
+.map-zone{
+  position:absolute;
+  pointer-events:none;
+  border-radius:14px;
+  transition:
+    opacity .2s ease,
+    transform .2s ease,
+    border-color .2s ease;
+}
+
+.zone-bungalow,
+.zone-back,
+.zone-venice,
+.zone-downtown,
+.zone-carver{
+  background:rgba(255,255,255,.012);
+  border:1px solid rgba(255,255,255,.035);
+}
+
+.zone-owned{
+  background:
+    radial-gradient(circle at center,
+      rgba(34,197,94,.16),
+      rgba(34,197,94,.055) 55%,
+      transparent 78%);
+  border:1px solid rgba(34,197,94,.26);
+  box-shadow:
+    inset 0 0 28px rgba(34,197,94,.045),
+    0 0 18px rgba(34,197,94,.04);
+}
+
+.zone-selected{
+  background:
+    radial-gradient(circle at center,
+      rgba(34,197,94,.22),
+      rgba(34,197,94,.07) 58%,
+      transparent 80%);
+  border:1px solid rgba(34,197,94,.55);
+  box-shadow:
+    inset 0 0 32px rgba(34,197,94,.08),
+    0 0 22px rgba(34,197,94,.08);
+}
+
+/* ---------- LOCATION MARKERS ---------- */
+
+.map-marker{
+  position:absolute;
+  z-index:10;
+  transform:translate(-50%,-50%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
+  padding:0;
+  border:0;
+  background:none;
+  color:#dce3e4;
+  cursor:pointer;
+  font-family:inherit;
+  transition:
+    transform .16s ease,
+    filter .16s ease;
+}
+
+.map-marker:hover{
+  transform:translate(-50%,-50%) scale(1.08);
+  filter:brightness(1.2);
+}
+
+.map-marker.marker-selected{
+  z-index:15;
+}
+
+.gps-pin{
+  position:relative;
+  width:25px;
+  height:25px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:rgba(12,18,20,.9);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:
+    0 4px 10px rgba(0,0,0,.45),
+    inset 0 0 0 3px rgba(255,255,255,.025);
+}
+
+.gps-pin span{
+  width:10px;
+  height:10px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#657174;
+  color:#07100b;
+  font-size:7px;
+  line-height:1;
+  font-weight:900;
+}
+
+/* current location */
+.map-marker.marker-focus .gps-pin{
+  border-color:#38a7ff;
+  box-shadow:
+    0 0 0 4px rgba(56,167,255,.09),
+    0 0 18px rgba(56,167,255,.2),
+    0 4px 10px rgba(0,0,0,.45);
+}
+
+.map-marker.marker-focus .gps-pin span{
+  background:#38a7ff;
+  color:#06111b;
+}
+
+/* selected */
+.map-marker.marker-selected .gps-pin{
+  border-color:#22c55e;
+  box-shadow:
+    0 0 0 4px rgba(34,197,94,.08),
+    0 0 20px rgba(34,197,94,.16),
+    0 4px 10px rgba(0,0,0,.5);
+}
+
+.map-marker.marker-selected .gps-pin span{
+  background:#22c55e;
+}
+
+/* territory */
+.map-marker:not(.marker-focus) .gps-pin span{
+  color:#101612;
+}
+
+.marker-name{
+  max-width:105px;
+  padding:3px 6px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:5px;
+  background:rgba(8,12,14,.88);
+  color:#c5ced0;
+  font-size:.54rem;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:.035em;
+  white-space:nowrap;
+  box-shadow:0 3px 8px rgba(0,0,0,.25);
+}
+
+.marker-selected .marker-name{
+  color:#e9fff0;
+  border-color:rgba(34,197,94,.35);
+  background:rgba(10,27,17,.92);
+}
+
+.marker-locked{
+  opacity:.45;
+  filter:grayscale(.5);
+}
+
+/* ---------- BUSINESS MARKERS ---------- */
+
+.business-marker{
+  position:absolute;
+  z-index:12;
+  min-width:75px;
+  padding:4px 6px;
+  border:1px solid rgba(34,197,94,.24);
+  border-radius:6px;
+  background:rgba(7,17,11,.93);
+  box-shadow:0 4px 12px rgba(0,0,0,.3);
+  color:#bfe8ca;
+  font-size:.47rem;
+  line-height:1.25;
+  pointer-events:none;
+}
+
+.bm-icon{
+  margin-right:3px;
+  color:#22c55e;
+}
+
+.bm-name{
+  font-weight:900;
+  color:#e1f8e6;
+}
+
+.bm-cond{
+  display:block;
+  margin-top:2px;
+  color:#7e9b86;
+  font-size:.42rem;
+}
+
+.business-marker.bm-low{
+  border-color:rgba(255,170,70,.35);
+  color:#e5c18e;
+}
+
+/* ---------- INFLUENCE ---------- */
+
+.map-territory-label{
+  position:absolute;
+  z-index:11;
+  padding:2px 4px;
+  border-radius:4px;
+  border:1px solid rgba(239,195,74,.2);
+  background:rgba(28,24,10,.88);
+  color:#d9bd61;
+  font-size:.43rem;
+  font-weight:900;
+  letter-spacing:.04em;
+  pointer-events:none;
+}
+
+/* ---------- MAP HUD ---------- */
+
+.map-compass{
+  position:absolute;
+  z-index:30;
+  top:12px;
+  left:12px;
+  width:43px;
+  height:43px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:10px;
+  background:rgba(8,12,14,.88);
+  box-shadow:0 6px 16px rgba(0,0,0,.3);
+  color:#dce4e5;
+  font-size:.62rem;
+  font-weight:900;
+  backdrop-filter:blur(8px);
+}
+
+.map-compass .arrow{
+  color:#38a7ff;
+  font-size:.9rem;
+  line-height:.8;
+}
+
+/* top map caption */
+.map-caption{
+  position:absolute;
+  z-index:30;
+  top:12px;
+  left:65px;
+  padding:7px 10px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;
+  background:rgba(8,12,14,.82);
+  color:#899698;
+  font-size:.53rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  backdrop-filter:blur(8px);
+}
+
+.map-scale{
+  position:absolute;
+  z-index:30;
+  left:12px;
+  bottom:12px;
+  padding:5px 7px;
+  border-radius:6px;
+  background:rgba(8,12,14,.8);
+  color:#899698;
+  font-size:.48rem;
+  font-weight:800;
+  letter-spacing:.05em;
+}
+
+.map-zoom-readout{
+  position:absolute;
+  z-index:30;
+  right:12px;
+  top:12px;
+  padding:6px 8px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:7px;
+  background:rgba(8,12,14,.82);
+  color:#8f9b9d;
+  font-size:.52rem;
+  font-weight:900;
+  backdrop-filter:blur(8px);
+}
+
+.map-zoom-controls{
+  position:absolute;
+  z-index:31;
+  right:12px;
+  bottom:12px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.map-zoom-controls button{
+  width:34px;
+  height:34px;
+  padding:0;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:8px;
+  background:rgba(8,12,14,.9);
+  color:#dce4e5;
+  font-family:inherit;
+  font-size:1.05rem;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 5px 12px rgba(0,0,0,.3);
+  backdrop-filter:blur(8px);
+}
+
+.map-zoom-controls button:hover{
+  border-color:rgba(34,197,94,.4);
+  color:#22c55e;
+}
+
+.map-pan-hint{
+  position:absolute;
+  z-index:30;
+  left:50%;
+  bottom:12px;
+  transform:translateX(-50%);
+  padding:5px 8px;
+  border-radius:6px;
+  background:rgba(8,12,14,.72);
+  color:#677477;
+  font-size:.43rem;
+  font-weight:800;
+  letter-spacing:.07em;
+  pointer-events:none;
+}
+
+/* ---------- MAP NOTE ---------- */
+
+.map-note{
+  color:#788487;
+  font-size:.68rem;
+  line-height:1.5;
+}
+
+.citymap-wrap > .map-note{
+  margin:8px 2px;
+}
+
+/* ---------- RIGHT NAVIGATION PANEL ---------- */
+
+.map-panel{
+  min-width:0;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;
+  background:#11171b;
+  box-shadow:0 12px 28px rgba(0,0,0,.25);
+}
+
+.map-filter-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:11px 12px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  background:#151c20;
+  color:#dce2e3;
+  font-size:.62rem;
+  letter-spacing:.08em;
+}
+
+.map-filter-clear{
+  padding:4px 6px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:5px;
+  background:#0c1114;
+  color:#778386;
+  font-family:inherit;
+  font-size:.46rem;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.map-filter-clear:hover{
+  color:#22c55e;
+  border-color:rgba(34,197,94,.3);
+}
+
+.map-filters{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1px;
+  padding:7px;
+  background:#0c1114;
+}
+
+.map-filter{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+  padding:7px 5px;
+  color:#9aa5a7;
+  font-size:.55rem;
+  cursor:pointer;
+}
+
+.map-filter input{
+  accent-color:#22c55e;
+  width:12px;
+  height:12px;
+  margin:0;
+}
+
+.filter-dot{
+  width:6px;
+  height:6px;
+  flex:0 0 6px;
+  border-radius:50%;
+  background:#7d898b;
+}
+
+.filter-green{
+  background:#22c55e;
+}
+
+.filter-red{
+  background:#fb7185;
+}
+
+.filter-yellow{
+  background:#e6c15b;
+}
+
+/* ---------- LEGEND ---------- */
+
+.map-legend{
+  padding:9px 11px;
+  border-top:1px solid rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.legend-item{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:4px 0;
+  color:#7f8a8d;
+  font-size:.54rem;
+}
+
+.legend-icon{
+  width:16px;
+  text-align:center;
+  color:#a8b2b4;
+  font-weight:900;
+}
+
+.legend-blue{
+  color:#38a7ff;
+}
+
+.legend-house{
+  color:#22c55e;
+}
+
+.legend-red{
+  color:#fb7185;
+}
+
+.legend-police{
+  color:#60a5fa;
+}
+
+.legend-yellow{
+  color:#e6c15b;
+}
+
+/* ---------- LOCATION INFO ---------- */
+
+.location-info{
+  padding:12px;
+}
+
+.map-panel-title{
+  margin-bottom:7px;
+  color:#667376;
+  font-size:.48rem;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+
+.location-info-name{
+  margin-bottom:3px;
+  color:#edf2f2;
+  font-size:1.05rem;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+
+.location-info-sub{
+  margin-bottom:12px;
+  color:#5e8f6b;
+  font-size:.52rem;
+  font-weight:900;
+  letter-spacing:.05em;
+}
+
+.map-stat{
+  display:grid;
+  grid-template-columns:52px 1fr auto;
+  align-items:center;
+  gap:7px;
+  margin:7px 0;
+  color:#c4cccd;
+  font-size:.56rem;
+}
+
+.map-stat-label{
+  color:#697678;
+  font-weight:800;
+}
+
+.map-stat-value{
+  color:#9da8aa;
+  font-size:.5rem;
+  text-align:right;
+  white-space:nowrap;
+}
+
+.territory-badge{
+  margin:11px 0;
+  padding:8px;
+  border:1px solid rgba(34,197,94,.25);
+  border-radius:7px;
+  background:rgba(34,197,94,.07);
+  color:#6ed287;
+  font-size:.52rem;
+  font-weight:900;
+  text-align:center;
+  letter-spacing:.04em;
+}
+
+/* ---------- DEBT / LOWER MAP AREA ---------- */
+
+.map-extra-locked{
+  margin-top:8px;
+  padding:8px 10px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:8px;
+  background:#11171a;
+  color:#697578;
+  font-size:.58rem;
+}
+
+/* ---------- RISK HUD ---------- */
+
+.citymap [style*="POLICE"],
+.citymap [style*="GANG"]{
+  backdrop-filter:blur(5px);
+  box-shadow:0 3px 9px rgba(0,0,0,.35);
+}
+
+/* ---------- CURRENT LOCATION PULSE ---------- */
+
+@keyframes streetlineGpsPulse{
+  0%,100%{
+    box-shadow:
+      0 0 0 3px rgba(56,167,255,.07),
+      0 0 14px rgba(56,167,255,.13);
+  }
+  50%{
+    box-shadow:
+      0 0 0 7px rgba(56,167,255,.035),
+      0 0 23px rgba(56,167,255,.22);
+  }
+}
+
+.map-marker.marker-focus .gps-pin{
+  animation:streetlineGpsPulse 2.6s ease-in-out infinite;
+}
+
+/* ---------- MOBILE ---------- */
+
+@media(max-width:850px){
+  .street-map-layout{
+    grid-template-columns:1fr;
+  }
+
+  .map-panel{
+    order:2;
+  }
+
+  .citymap{
+    height:410px;
+  }
+
+  .map-caption{
+    max-width:190px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+}
+
+@media(max-width:560px){
+  .citymap{
+    height:355px;
+    border-radius:13px;
+  }
+
+  .map-caption{
+    left:62px;
+    max-width:145px;
+    font-size:.45rem;
+  }
+
+  .map-compass{
+    width:37px;
+    height:37px;
+    top:9px;
+    left:9px;
+  }
+
+  .map-zoom-readout{
+    top:9px;
+    right:9px;
+  }
+
+  .map-zoom-controls{
+    right:9px;
+    bottom:9px;
+  }
+
+  .map-zoom-controls button{
+    width:31px;
+    height:31px;
+  }
+
+  .map-scale{
+    left:9px;
+    bottom:9px;
+  }
+
+  .map-pan-hint{
+    display:none;
+  }
+
+  .marker-name{
+    max-width:80px;
+    font-size:.45rem;
+    padding:3px 4px;
+  }
+
+  .gps-pin{
+    width:21px;
+    height:21px;
+  }
+
+  .gps-pin span{
+    width:8px;
+    height:8px;
+    font-size:6px;
+  }
+
+  .business-marker{
+    min-width:62px;
+    font-size:.41rem;
+  }
+
+  .map-label{
+    font-size:1.8px;
+  }
+
+  .map-label-major{
+    font-size:2.5px;
+  }
+
+  .water-label{
+    font-size:1.9px;
+  }
+}
+
+/* ---------- VERY SMALL PHONES ---------- */
+
+@media(max-width:380px){
+  .citymap{
+    height:320px;
+  }
+
+  .map-caption{
+    display:none;
+  }
+
+  .map-legend{
+    display:none;
+  }
+
+  .map-filters{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .location-info{
+    padding:10px;
+  }
+}
