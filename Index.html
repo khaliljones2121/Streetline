@@ -2319,49 +2319,547 @@ function neighborhoodSeed(loc) {
 }
 function renderNeighborhoodMap(loc) {
   const seed = neighborhoodSeed(loc);
-  const streets = [];
-  const blocks = [];
+
   const landmarks = {
-    "Downtown":[['CITY HALL',72,24,'civic'],['PARKING GARAGE',27,72,'building'],['CENTRAL PLAZA',52,47,'park']],
-    "Westside":[['WESTSIDE PARK',27,36,'park'],['CORNER MARKET',68,64,'shop'],['COMMUNITY CENTER',48,25,'civic']],
-    "Bungalow Park":[['BUNGALOW PARK',28,70,'park'],['MARINA WALK',75,25,'water'],['PARK OFFICE',53,52,'civic']],
-    "Venice Park":[['VENICE GREEN',28,42,'park'],['LOCAL SHOPS',68,28,'shop'],['CANAL WALK',78,72,'water']],
-    "Back Maryland":[['INDUSTRIAL YARD',70,30,'building'],['COMMUNITY LOT',31,69,'park'],['SERVICE ROAD',55,43,'shop']],
-    "Carver Hall":[['CARVER PARK',30,32,'park'],['APARTMENT ROW',70,62,'building'],['MAIN PLAZA',50,48,'civic']],
-    "Boardwalk":[['BOARDWALK',52,82,'water'],['ARCADE ROW',25,48,'shop'],['PIER',79,30,'water']],
-    "Margate":[['BEACH PARK',26,30,'park'],['COASTAL SHOPS',69,58,'shop'],['PROMENADE',52,82,'water']]
+    "Downtown":[
+      ["CITY HALL",72,24,"civic"],
+      ["PARKING GARAGE",27,72,"building"],
+      ["CENTRAL PLAZA",52,47,"park"]
+    ],
+    "Westside":[
+      ["WESTSIDE PARK",27,36,"park"],
+      ["CORNER MARKET",68,64,"shop"],
+      ["COMMUNITY CENTER",48,25,"civic"]
+    ],
+    "Bungalow Park":[
+      ["BUNGALOW PARK",28,70,"park"],
+      ["MARINA WALK",75,25,"water"],
+      ["PARK OFFICE",53,52,"civic"]
+    ],
+    "Venice Park":[
+      ["VENICE GREEN",28,42,"park"],
+      ["LOCAL SHOPS",68,28,"shop"],
+      ["CANAL WALK",78,72,"water"]
+    ],
+    "Back Maryland":[
+      ["INDUSTRIAL YARD",70,30,"building"],
+      ["COMMUNITY LOT",31,69,"park"],
+      ["SERVICE ROAD",55,43,"shop"]
+    ],
+    "Carver Hall":[
+      ["CARVER PARK",30,32,"park"],
+      ["APARTMENT ROW",70,62,"building"],
+      ["MAIN PLAZA",50,48,"civic"]
+    ],
+    "Boardwalk":[
+      ["BOARDWALK",52,82,"water"],
+      ["ARCADE ROW",25,48,"shop"],
+      ["PIER",79,30,"water"]
+    ],
+    "Margate":[
+      ["BEACH PARK",26,30,"park"],
+      ["COASTAL SHOPS",69,58,"shop"],
+      ["PROMENADE",52,82,"water"]
+    ]
   };
-  const generic = [['NEIGHBORHOOD PARK',25,30,'park'],['LOCAL SHOPS',70,34,'shop'],['COMMUNITY CENTER',52,68,'civic']];
-  const lm = landmarks[loc] || generic;
-  for(let i=0;i<7;i++){ const y=14+i*12+((seed+i*7)%4); streets.push(`<path class="nb-road" d="M3 ${y} C28 ${y-2} 48 ${y+2} 97 ${y}"/>`); }
-  for(let i=0;i<6;i++){ const x=12+i*15+((seed+i*5)%5); streets.push(`<path class="nb-road" d="M${x} 4 C${x-2} 26 ${x+3} 54 ${x} 96"/>`); }
-  for(let i=0;i<12;i++){ const x=7+((seed+i*17)%80), y=8+((seed+i*29)%78); const w=6+(seed+i)%7, h=4+(seed+i*2)%6; const cls=i%5===0?'nb-yard':i%7===0?'nb-parking':i%3===0?'nb-building-dark':'nb-building'; blocks.push(`<rect class="${cls}" x="${x}" y="${y}" width="${w}" height="${h}" rx=".7"/>`); if(i%3===0) blocks.push(`<rect class="nb-window" x="${x+1}" y="${y+1}" width="${Math.max(2,w-2)}" height=".8" rx=".2"/>`); }
-  const roadLabels = `<text class="nb-road-label" x="50" y="12" text-anchor="middle">MAIN STREET</text><text class="nb-road-label" x="16" y="54" text-anchor="middle">MARKET AVE</text><text class="nb-road-label" x="83" y="78" text-anchor="middle">7TH STREET</text>`;
-  const sidewalks = `<path class="nb-sidewalk" d="M0 26H100V29H0Z M0 69H100V72H0Z M31 0H34V100H31Z M66 0H69V100H69Z"/>`;
-  const alleys = `<path class="nb-alley" d="M7 7L24 7L24 10L7 10Z M72 84L94 84L94 88L72 88Z"/>`;
-  const crossings = [26,69].map(y=>Array.from({length:6},(_,i)=>`<path class="nb-cross" d="M${42+i*2} ${y-1.5}V${y+1.5}"/>`).join('')).join('');
-  const streetStuff = Array.from({length:8},(_,i)=>{ const x=8+((seed+i*23)%84), y=18+((seed+i*13)%66); return i%3===0?`<circle class="nb-tree" cx="${x}" cy="${y}" r="2"/>`:i%3===1?`<rect class="nb-car" x="${x}" y="${y}" width="4" height="1.8" rx=".6"/>`:`<circle class="nb-light" cx="${x}" cy="${y}" r=".7"/>`; }).join('');
-  const fence = `<path class="nb-fence" d="M9 82H27V93H9Z M74 8H94V18H74Z"/>`;
-  const landmarkSvg=lm.map(([name,x,y,type])=>`<g class="nb-landmark" role="button" tabindex="0" onclick="openStreetDetail(${JSON.stringify(loc).replace(/\"/g,'&quot;')},${JSON.stringify(name).replace(/\"/g,'&quot;')},${JSON.stringify(type).replace(/\"/g,'&quot;')})"><rect class="nb-lm-${type}" x="${x-7}" y="${y-5}" width="14" height="10" rx="2"/><text x="${x}" y="${y+1}" text-anchor="middle">${type==='park'?'◆':type==='water'?'≈':type==='shop'?'▦':'■'}</text><text class="nb-lm-label" x="${x}" y="${y+10}" text-anchor="middle">${name}</text></g>`).join('');
+
+  const lm = landmarks[loc] || [
+    ["NEIGHBORHOOD PARK",25,30,"park"],
+    ["LOCAL SHOPS",70,34,"shop"],
+    ["COMMUNITY CENTER",52,68,"civic"]
+  ];
+
+  const waterfront = [
+    "Boardwalk",
+    "Bungalow Park",
+    "Venice Park",
+    "Margate",
+    "Atlantic City Marina",
+    "Ventnor",
+    "Brigantine",
+    "Gardner's Basin"
+  ].includes(loc);
+
+  /* =========================
+     STREET NETWORK
+     ========================= */
+
+  const roads = [];
+
+  // Main horizontal avenue
+  roads.push(`
+    <path class="nb-road" d="M-5 50 H105 V60 H-5Z"/>
+    <path class="nb-road-mark" d="M0 55H100" stroke-dasharray="2 2"/>
+  `);
+
+  // Main vertical avenue
+  roads.push(`
+    <path class="nb-road" d="M45 -5 H55 V105 H45Z"/>
+    <path class="nb-road-mark" d="M50 0V100" stroke-dasharray="2 2"/>
+  `);
+
+  // Side streets
+  [15,30,75,90].forEach(y => {
+    roads.push(`
+      <path class="nb-road-minor" d="M-5 ${y-3} H105 V${y+3} H-5Z"/>
+      <path class="nb-sidewalk" d="M0 ${y-4}H100V${y-3}H0Z"/>
+      <path class="nb-sidewalk" d="M0 ${y+3}H100V${y+4}H0Z"/>
+    `);
+  });
+
+  [20,35,65,80].forEach(x => {
+    roads.push(`
+      <path class="nb-road-minor" d="M${x-3} -5H${x+3}V105H${x-3}Z"/>
+      <path class="nb-sidewalk" d="M${x-4} 0H${x-3}V100H${x-4}Z"/>
+      <path class="nb-sidewalk" d="M${x+3} 0H${x+4}V100H${x+3}Z"/>
+    `);
+  });
+
+  /* =========================
+     CROSSWALKS
+     ========================= */
+
+  const crossings = [];
+
+  [48,53,58].forEach(y => {
+    for(let i=0;i<7;i++){
+      crossings.push(
+        `<rect class="nb-crosswalk"
+          x="${43+i*2}" y="${y}" width="1.1" height="3"/>`
+      );
+    }
+  });
+
+  [48,53,58].forEach(x => {
+    for(let i=0;i<7;i++){
+      crossings.push(
+        `<rect class="nb-crosswalk"
+          x="${x}" y="${43+i*2}" width="3" height="1.1"/>`
+      );
+    }
+  });
+
+  /* =========================
+     LOTS + BUILDINGS
+     ========================= */
+
+  const buildings = [
+    [5,5,12,8],
+    [23,5,10,8],
+    [68,5,12,8],
+    [84,5,11,8],
+
+    [5,20,12,7],
+    [23,20,10,7],
+    [68,20,12,7],
+    [84,20,11,7],
+
+    [5,68,12,8],
+    [23,68,11,8],
+    [68,68,12,8],
+    [84,68,11,8],
+
+    [5,84,12,9],
+    [23,84,10,9],
+    [68,84,12,9],
+    [84,84,11,9]
+  ];
+
+  const buildingSvg = buildings.map((b,i) => {
+    const [x,y,w,h] = b;
+    const dark = (i + seed) % 4 === 0;
+
+    let windows = "";
+
+    for(let wx=x+2; wx<x+w-1; wx+=3) {
+      windows += `
+        <rect class="nb-window"
+          x="${wx}" y="${y+2}"
+          width="1.5" height="1.8" rx=".2"/>
+
+        <rect class="nb-window"
+          x="${wx}" y="${y+h-3.5}"
+          width="1.5" height="1.8" rx=".2"/>
+      `;
+    }
+
+    return `
+      <g>
+        <rect class="nb-lot"
+          x="${x-1}" y="${y-1}"
+          width="${w+2}" height="${h+2}"
+          rx="1"/>
+
+        <rect class="${dark ? "nb-building-dark" : "nb-building"}"
+          x="${x}" y="${y}"
+          width="${w}" height="${h}"
+          rx=".8"/>
+
+        <rect class="nb-roof"
+          x="${x+.7}" y="${y+.7}"
+          width="${w-1.4}" height="1.2"
+          rx=".3"/>
+
+        ${windows}
+
+        <rect class="nb-door"
+          x="${x+w/2-.7}"
+          y="${y+h-2.2}"
+          width="1.4"
+          height="2"/>
+      </g>
+    `;
+  }).join("");
+
+  /* =========================
+     PARK
+     ========================= */
+
+  const park = `
+    <rect class="nb-park"
+      x="7" y="34"
+      width="26" height="22"
+      rx="3"/>
+
+    <path class="nb-sidewalk"
+      d="M9 45 Q20 37 31 45 Q20 53 9 45Z"/>
+
+    <circle class="nb-tree" cx="12" cy="38" r="2"/>
+    <circle class="nb-tree" cx="18" cy="36" r="2"/>
+    <circle class="nb-tree" cx="27" cy="39" r="2"/>
+    <circle class="nb-tree" cx="11" cy="51" r="2"/>
+    <circle class="nb-tree" cx="29" cy="52" r="2"/>
+  `;
+
+  /* =========================
+     PARKING LOT
+     ========================= */
+
+  let parkingSpaces = "";
+
+  for(let i=0;i<6;i++){
+    parkingSpaces += `
+      <path class="nb-parking-line"
+        d="M${69+i*3.5} 36V45"/>
+    `;
+  }
+
+  const parking = `
+    <rect class="nb-parking"
+      x="67" y="34"
+      width="25" height="14"
+      rx="1"/>
+
+    ${parkingSpaces}
+
+    <rect class="nb-parking"
+      x="67" y="34"
+      width="25" height="2"
+      opacity=".4"/>
+  `;
+
+  /* =========================
+     TREES / CARS / STREETLIGHTS
+     ========================= */
+
+  let streetStuff = "";
+
+  for(let i=0;i<22;i++){
+
+    const x = 4 + ((seed + i*17) % 92);
+    const y = 7 + ((seed + i*29) % 88);
+
+    if(i % 4 === 0){
+
+      streetStuff += `
+        <circle class="nb-trunk"
+          cx="${x}" cy="${y+1}" r=".65"/>
+
+        <circle class="nb-tree"
+          cx="${x}" cy="${y}" r="1.8"/>
+      `;
+
+    } else if(i % 4 === 1){
+
+      streetStuff += `
+        <g transform="rotate(${i%2 ? 90 : 0} ${x} ${y})">
+          <rect class="nb-car"
+            x="${x-2}" y="${y-.9}"
+            width="4" height="1.8"
+            rx=".5"/>
+
+          <rect class="nb-car-window"
+            x="${x-.8}" y="${y-.6}"
+            width="1.6" height="1.2"
+            rx=".2"/>
+        </g>
+      `;
+
+    } else if(i % 4 === 2){
+
+      streetStuff += `
+        <rect class="nb-light"
+          x="${x-.25}" y="${y-1.5}"
+          width=".5" height="3"
+          rx=".2"/>
+
+        <circle class="nb-light"
+          cx="${x}" cy="${y-1.5}" r=".7"/>
+      `;
+
+    }
+  }
+
+  /* =========================
+     WATERFRONT
+     ========================= */
+
+  const waterfrontSvg = waterfront ? `
+    <path class="nb-water"
+      d="M91 -5
+         H105
+         V105
+         H91
+         C86 88 96 75 91 62
+         C86 48 96 35 91 22
+         C87 10 96 2 91 -5Z"/>
+
+    <path
+      d="M94 5
+         Q99 9 94 13
+         T94 21
+         T94 29
+         T94 37
+         T94 45
+         T94 53
+         T94 61
+         T94 69
+         T94 77
+         T94 85
+         T94 94"
+      fill="none"
+      stroke="#b8cdd0"
+      stroke-width=".6"
+      opacity=".65"/>
+  ` : "";
+
+  /* =========================
+     LANDMARKS
+     ========================= */
+
+  const landmarkSvg = lm.map(([name,x,y,type]) => {
+
+    let symbol = "■";
+
+    if(type === "park") symbol = "◆";
+    if(type === "water") symbol = "≈";
+    if(type === "shop") symbol = "▦";
+
+    return `
+      <g class="nb-landmark"
+        onclick="openStreetDetail(
+          ${JSON.stringify(loc).replace(/"/g,'&quot;')},
+          ${JSON.stringify(name).replace(/"/g,'&quot;')},
+          ${JSON.stringify(type).replace(/"/g,'&quot;')}
+        )">
+
+        <rect class="nb-lot"
+          x="${x-7}" y="${y-5}"
+          width="14" height="10"
+          rx="1.5"/>
+
+        <rect class="nb-building"
+          x="${x-5.5}" y="${y-3.5}"
+          width="11" height="7"
+          rx=".8"/>
+
+        <rect class="nb-roof"
+          x="${x-5}" y="${y-3}"
+          width="10" height="1.2"/>
+
+        <text
+          x="${x}"
+          y="${y+1.5}"
+          text-anchor="middle"
+          font-size="4"
+          fill="#e8ece9">
+          ${symbol}
+        </text>
+
+        <text
+          class="nb-lm-label"
+          x="${x}"
+          y="${y+8}"
+          text-anchor="middle">
+          ${name}
+        </text>
+      </g>
+    `;
+  }).join("");
+
   const current = state.location === loc;
-  return `<div class="neighborhood-map" id="neighborhoodMap">
-    <div class="nb-topbar"><button class="nb-back" onclick="exitMapDetail()">‹ CITY MAP</button><div><b>${loc.toUpperCase()}</b><span>NEIGHBORHOOD MAP</span></div><span class="nb-compass">N ↑</span></div>
-    <div class="nb-viewport" id="nbViewport"><div class="nb-world" id="nbWorld"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="${loc} neighborhood map">
-      <rect width="100" height="100" class="nb-land"/>
-      ${loc==='Boardwalk'||loc==='Bungalow Park'||loc==='Venice Park'||loc==='Margate'?'<path class="nb-water" d="M80 0H100V100H87C82 83 89 66 83 50C78 34 86 17 80 0Z"/>':''}
-      ${blocks.join('')}
-      ${sidewalks}${alleys}${streets.join('')}${crossings}${streetStuff}${fence}
-      ${roadLabels}
-      <path class="nb-mainroad" d="M4 50 C28 46 55 53 96 48"/><path class="nb-mainroad" d="M50 4 C46 30 54 62 50 96"/>
-      ${landmarkSvg}
-      <g class="nb-pin" transform="translate(${current?50:50} 50)"><circle r="4.2"/><circle r="1.8"/></g>
-    </svg></div><div class="nb-zoom"><button onclick="nbZoom(0.2)">+</button><button onclick="nbReset()">⌂</button><button onclick="nbZoom(-0.2)">−</button></div></div>
-    <div class="nb-bottom"><div><strong>${current?'● YOU ARE HERE':'📍 '+loc.toUpperCase()}</strong><span>${LOCATION_FLAVOR[loc] || 'Local streets, businesses and landmarks.'}</span></div><div class="nb-actions">
-      <button class="btn" onclick="neighborhoodAction(${JSON.stringify(loc).replace(/"/g,'&quot;')},'scout')">SCOUT · 5 ENERGY</button>
-      <button class="btn" onclick="neighborhoodAction(${JSON.stringify(loc).replace(/"/g,'&quot;')},'contacts')">CHECK CONTACT</button>
-      ${state.territories?.[loc] ? '<button class="btn" disabled>⌂ TERRITORY CONTROLLED</button>' : `<button class="btn btn-green" onclick="neighborhoodAction(${JSON.stringify(loc).replace(/"/g,'&quot;')},'territory')">CLAIM BLOCK · $${TERRITORY_COST.toLocaleString()}</button>`}
-    </div><div class="nb-legend"><span><i class="nb-dot current"></i> YOU</span><span><i class="nb-dot road"></i> ROAD</span><span><i class="nb-dot poi"></i> POI</span></div></div>
-  </div>`;
+
+  return `
+    <div class="neighborhood-map" id="neighborhoodMap">
+
+      <div class="nb-topbar">
+        <button class="nb-back"
+          onclick="exitMapDetail()">
+          ‹ CITY MAP
+        </button>
+
+        <div>
+          <b>${loc.toUpperCase()}</b>
+          <span>NEIGHBORHOOD MAP</span>
+        </div>
+
+        <span class="nb-compass">N ↑</span>
+      </div>
+
+      <div class="nb-viewport" id="nbViewport">
+
+        <div class="nb-world" id="nbWorld">
+
+          <svg
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-label="${loc} neighborhood map">
+
+            <rect
+              width="100"
+              height="100"
+              fill="#b9c3bc"/>
+
+            ${waterfrontSvg}
+
+            ${roads.join("")}
+
+            ${crossings.join("")}
+
+            ${park}
+
+            ${parking}
+
+            ${buildingSvg}
+
+            ${streetStuff}
+
+            <text
+              class="nb-road-label"
+              x="50"
+              y="48"
+              text-anchor="middle">
+              MAIN STREET
+            </text>
+
+            <text
+              class="nb-road-label"
+              x="50"
+              y="18"
+              text-anchor="middle">
+              7TH AVE
+            </text>
+
+            ${landmarkSvg}
+
+            <g
+              class="nb-pin nb-gps"
+              transform="translate(50 55)">
+
+              <circle r="4.5"/>
+              <circle r="1.8"/>
+            </g>
+
+          </svg>
+
+        </div>
+
+        <div class="nb-zoom">
+
+          <button onclick="nbZoom(.2)">+</button>
+
+          <button onclick="nbReset()">⌂</button>
+
+          <button onclick="nbZoom(-.2)">−</button>
+
+        </div>
+
+      </div>
+
+      <div class="nb-bottom">
+
+        <div>
+          <strong>
+            ${current ? "● YOU ARE HERE" : "📍 " + loc.toUpperCase()}
+          </strong>
+
+          <span>
+            ${LOCATION_FLAVOR[loc] || "Local streets, businesses and landmarks."}
+          </span>
+        </div>
+
+        <div class="nb-actions">
+
+          <button
+            class="btn"
+            onclick="neighborhoodAction(
+              ${JSON.stringify(loc).replace(/"/g,'&quot;')},
+              'scout'
+            )">
+            SCOUT · 5 ENERGY
+          </button>
+
+          <button
+            class="btn"
+            onclick="neighborhoodAction(
+              ${JSON.stringify(loc).replace(/"/g,'&quot;')},
+              'contacts'
+            )">
+            CHECK CONTACT
+          </button>
+
+          ${
+            state.territories?.[loc]
+            ?
+            '<button class="btn" disabled>⌂ TERRITORY CONTROLLED</button>'
+            :
+            `
+            <button
+              class="btn btn-green"
+              onclick="neighborhoodAction(
+                ${JSON.stringify(loc).replace(/"/g,'&quot;')},
+                'territory'
+              )">
+              CLAIM BLOCK · $${TERRITORY_COST.toLocaleString()}
+            </button>
+            `
+          }
+
+        </div>
+
+        <div class="nb-legend">
+
+          <span>
+            <i class="nb-dot current"></i>
+            YOU
+          </span>
+
+          <span>
+            <i class="nb-dot road"></i>
+            ROAD
+          </span>
+
+          <span>
+            <i class="nb-dot poi"></i>
+            POI
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+  `;
 }
 let nbZoomLevel=1, nbPanX=0, nbPanY=0;
 function nbApply(){const w=document.getElementById('nbWorld');if(!w)return;const z=Math.max(1,Math.min(2.6,nbZoomLevel));nbZoomLevel=z;const m=45*(z-1);nbPanX=Math.max(-m,Math.min(m,nbPanX));nbPanY=Math.max(-m,Math.min(m,nbPanY));w.style.transform=`translate3d(${nbPanX}%,${nbPanY}%,0) scale(${z})`;}
