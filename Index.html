@@ -2270,48 +2270,620 @@ function streetAction(loc, poi, action) {
 
 function renderStreetDetail(loc, poi) {
   const seed = neighborhoodSeed(loc + (poi?.name || 'STREET'));
-  const isWater = ['Boardwalk','Bungalow Park','Venice Park','Margate','Atlantic City Marina','Ventnor','Brigantine','Gardner\'s Basin'].includes(loc);
-  const buildings = Array.from({length:14},(_,i)=>{
-    const x=5+((seed+i*19)%82), y=7+((seed+i*31)%78);
-    const w=5+((seed+i)%6), h=4+((seed+i*3)%5);
-    const cls=i%4===0?'st-building-dark':'st-building';
-    return `<g><rect class="${cls}" x="${x}" y="${y}" width="${w}" height="${h}" rx=".7"/><rect class="st-window" x="${x+1}" y="${y+1}" width="${Math.max(2,w-2)}" height=".8" rx=".2"/></g>`;
+
+  const isWater = [
+    'Boardwalk',
+    'Bungalow Park',
+    'Venice Park',
+    'Margate',
+    'Atlantic City Marina',
+    'Ventnor',
+    'Brigantine',
+    "Gardner's Basin"
+  ].includes(loc);
+
+  const poiName = (poi?.name || 'LOCAL SPOT').toUpperCase();
+
+  /* =========================
+     STREET GRID
+     ========================= */
+
+  const streets = [];
+
+  // Main horizontal street
+  streets.push(`
+    <path class="st-mainroad"
+      d="M2 54 C25 50 45 56 66 52 C80 49 91 51 98 48"/>
+  `);
+
+  // Main vertical street
+  streets.push(`
+    <path class="st-mainroad"
+      d="M52 3 C48 25 54 43 51 59 C48 76 51 87 49 97"/>
+  `);
+
+  // Smaller streets
+  for (let i = 0; i < 5; i++) {
+    const y = 12 + i * 17 + ((seed + i * 5) % 3);
+
+    streets.push(`
+      <path class="st-road"
+        d="M2 ${y} C24 ${y-1} 48 ${y+1} 98 ${y}"/>
+    `);
+  }
+
+  for (let i = 0; i < 4; i++) {
+    const x = 15 + i * 22 + ((seed + i * 7) % 4);
+
+    streets.push(`
+      <path class="st-road"
+        d="M${x} 2 C${x-1} 27 ${x+2} 58 ${x} 98"/>
+    `);
+  }
+
+  /* =========================
+     SIDEWALKS
+     ========================= */
+
+  const sidewalks = `
+    <path class="st-sidewalk" d="M2 46H98V49H2Z"/>
+    <path class="st-sidewalk" d="M2 58H98V61H2Z"/>
+
+    <path class="st-sidewalk" d="M45 2H48V98H45Z"/>
+    <path class="st-sidewalk" d="M56 2H59V98H56Z"/>
+  `;
+
+  /* =========================
+     CROSSWALKS
+     ========================= */
+
+  let crossings = '';
+
+  for (let i = 0; i < 7; i++) {
+    crossings += `
+      <rect class="st-cross"
+        x="${42 + i * 2}"
+        y="51"
+        width="1"
+        height="5"/>
+    `;
+  }
+
+  for (let i = 0; i < 7; i++) {
+    crossings += `
+      <rect class="st-cross"
+        x="48"
+        y="${42 + i * 2}"
+        width="6"
+        height="1"/>
+    `;
+  }
+
+  /* =========================
+     BUILDING BLOCKS
+     ========================= */
+
+  const buildingData = [
+    [5,5,16,10],
+    [26,5,13,10],
+    [63,5,14,10],
+    [81,5,13,10],
+
+    [5,19,12,11],
+    [21,20,16,9],
+    [65,20,13,10],
+    [82,20,11,11],
+
+    [5,68,15,10],
+    [24,67,13,12],
+    [64,68,15,10],
+    [83,67,10,12],
+
+    [5,83,13,11],
+    [23,84,15,10],
+    [64,83,14,11],
+    [82,84,12,10]
+  ];
+
+  const buildings = buildingData.map((b, i) => {
+
+    const [x, y, w, h] = b;
+    const dark = (i + seed) % 5 === 0;
+
+    let windows = '';
+
+    for (let wx = x + 2; wx < x + w - 1; wx += 3) {
+
+      windows += `
+        <rect class="st-window"
+          x="${wx}"
+          y="${y + 2}"
+          width="1.5"
+          height="2"
+          rx=".2"/>
+
+        <rect class="st-window"
+          x="${wx}"
+          y="${y + h - 4}"
+          width="1.5"
+          height="2"
+          rx=".2"/>
+      `;
+    }
+
+    return `
+      <g>
+
+        <rect
+          class="${dark ? 'st-building-dark' : 'st-building'}"
+          x="${x}"
+          y="${y}"
+          width="${w}"
+          height="${h}"
+          rx=".8"/>
+
+        <rect
+          class="st-roof"
+          x="${x + .7}"
+          y="${y + .7}"
+          width="${w - 1.4}"
+          height="1.3"
+          rx=".3"/>
+
+        ${windows}
+
+        <rect
+          class="st-door"
+          x="${x + w/2 - .8}"
+          y="${y + h - 2.5}"
+          width="1.6"
+          height="2.5"
+          rx=".2"/>
+
+      </g>
+    `;
   }).join('');
-  const sideRoads = Array.from({length:7},(_,i)=>{
-    const y=13+i*12+((seed+i)%3);
-    return `<path class="st-road" d="M2 ${y} L98 ${y+((i%2)?1:-1)}"/>`;
-  }).join('');
-  const crossRoads = Array.from({length:6},(_,i)=>{
-    const x=10+i*16+((seed+i*2)%4);
-    return `<path class="st-road" d="M${x} 3 L${x+((i%2)?1:-1)} 97"/>`;
-  }).join('');
-  const streetFurniture = Array.from({length:7},(_,i)=>{ const x=7+((seed+i*17)%84), y=15+((seed+i*21)%68); return i%3===0?`<circle class="st-tree" cx="${x}" cy="${y}" r="1.8"/>`:i%3===1?`<rect class="st-car" x="${x}" y="${y}" width="4" height="1.7" rx=".5"/>`:`<circle class="st-light" cx="${x}" cy="${y}" r=".65"/>`; }).join('');
-  const streetCrossings = [28,72].map(y=>Array.from({length:5},(_,i)=>`<path class="st-cross" d="M${43+i*2.2} ${y-1.5}V${y+1.5}"/>`).join('')).join('');
-  const streetFence = `<path class="st-fence" d="M7 80H28V93H7Z M73 8H94V18H73Z"/>`;
-  const poiX=50, poiY=50;
-  const water = isWater ? `<path class="st-water" d="M84 0H100V100H88C84 82 91 64 85 48C80 32 88 15 84 0Z"/>` : '';
-  return `<div class="street-detail-map">
-    <div class="nb-topbar"><button class="nb-back" onclick="exitStreetDetail()">‹ ${loc.toUpperCase()}</button><div><b>${(poi?.name || 'STREET LEVEL').toUpperCase()}</b><span>STREET / BUILDING MAP</span></div><span class="nb-compass">N ↑</span></div>
-    <div class="st-viewport" id="nbViewport"><div class="nb-world" id="nbWorld"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="${loc} street level map">
-      <rect width="100" height="100" class="st-land"/>${water}${sideRoads}${crossRoads}${streetFurniture}${streetCrossings}${streetFence}
-      <path class="st-mainroad" d="M3 49 C30 46 61 53 97 48"/><path class="st-mainroad" d="M51 3 C48 29 53 66 49 97"/>
-      ${buildings}
-      <text class="st-road-label" x="50" y="46" text-anchor="middle">MARKET STREET</text><text class="st-road-label" x="54" y="18" text-anchor="middle">7TH AVE</text>
-      <rect class="st-focus" x="${poiX-13}" y="${poiY-10}" width="26" height="20" rx="2"/>
-      <rect class="st-interior" x="${poiX-10}" y="${poiY-7}" width="20" height="14" rx="1"/>
-      <rect class="st-wall" x="${poiX-10}" y="${poiY-7}" width="20" height="2"/><rect class="st-floor" x="${poiX-8}" y="${poiY-3}" width="5" height="3"/><rect class="st-floor" x="${poiX+3}" y="${poiY-3}" width="5" height="3"/>
-      <rect class="st-furniture" x="${poiX-7}" y="${poiY+2}" width="5" height="2" rx=".5"/><rect class="st-furniture" x="${poiX+2}" y="${poiY+1}" width="5" height="3" rx=".5"/>
-      <rect class="st-door" x="${poiX-1}" y="${poiY+5}" width="2" height="2"/><rect class="st-sign" x="${poiX-7}" y="${poiY-6}" width="14" height="2" rx=".4"/><text class="st-sign-text" x="${poiX}" y="${poiY-4.5}" text-anchor="middle">${(poi?.name || 'LOCAL SPOT').toUpperCase()}</text>
-      <text class="st-room-label" x="${poiX-5}" y="${poiY-1}" text-anchor="middle">FRONT</text><text class="st-room-label" x="${poiX+5}" y="${poiY-1}" text-anchor="middle">MAIN</text>
-      <g class="st-pin" transform="translate(${poiX} ${poiY+8})"><circle r="4.8"/><circle r="1.8"/></g>
-    </svg></div><div class="nb-zoom"><button onclick="nbZoom(0.2)">+</button><button onclick="nbReset()">⌂</button><button onclick="nbZoom(-0.2)">−</button></div></div>
-    <div class="st-info"><div><strong>📍 ${poi?.name || loc}</strong><span>${loc} · street-level interaction point</span></div><div class="st-actions">
-      <button class="btn" onclick="streetAction(${JSON.stringify(loc).replace(/"/g,'&quot;')},${JSON.stringify(poi||{}).replace(/"/g,'&quot;')},'inspect')">INSPECT · 3 ENERGY</button>
-      <button class="btn" onclick="streetAction(${JSON.stringify(loc).replace(/"/g,'&quot;')},${JSON.stringify(poi||{}).replace(/"/g,'&quot;')},'business')">CHECK BUSINESS</button>
-      <button class="btn" onclick="streetAction(${JSON.stringify(loc).replace(/"/g,'&quot;')},${JSON.stringify(poi||{}).replace(/"/g,'&quot;')},'contact')">TALK CONTACT</button>
-      <button class="btn btn-green" onclick="streetAction(${JSON.stringify(loc).replace(/"/g,'&quot;')},${JSON.stringify(poi||{}).replace(/"/g,'&quot;')},'mission')">TAKE LOCAL JOB</button>
-    </div><span class="st-mini-legend">● YOU &nbsp; ▪ BUILDINGS &nbsp; ━ STREETS</span></div>
-  </div>`;
+
+  /* =========================
+     PARKING LOT
+     ========================= */
+
+  let parkingLines = '';
+
+  for (let i = 0; i < 6; i++) {
+    parkingLines += `
+      <path
+        class="st-parking-line"
+        d="M${67 + i * 3.8} 37V46"/>
+    `;
+  }
+
+  const parking = `
+    <rect
+      class="st-parking"
+      x="66"
+      y="34"
+      width="27"
+      height="14"
+      rx="1"/>
+
+    ${parkingLines}
+  `;
+
+  /* =========================
+     SMALL PARK
+     ========================= */
+
+  const park = `
+    <rect
+      class="st-park"
+      x="7"
+      y="33"
+      width="25"
+      height="20"
+      rx="2.5"/>
+
+    <circle class="st-tree" cx="12" cy="38" r="2"/>
+    <circle class="st-tree" cx="18" cy="36" r="2"/>
+    <circle class="st-tree" cx="27" cy="39" r="2"/>
+    <circle class="st-tree" cx="12" cy="49" r="2"/>
+    <circle class="st-tree" cx="27" cy="50" r="2"/>
+  `;
+
+  /* =========================
+     STREET DETAILS
+     ========================= */
+
+  let streetObjects = '';
+
+  for (let i = 0; i < 18; i++) {
+
+    const x = 5 + ((seed + i * 19) % 89);
+    const y = 7 + ((seed + i * 31) % 87);
+
+    if (i % 4 === 0) {
+
+      streetObjects += `
+        <circle
+          class="st-tree"
+          cx="${x}"
+          cy="${y}"
+          r="1.7"/>
+      `;
+
+    } else if (i % 4 === 1) {
+
+      streetObjects += `
+        <rect
+          class="st-car"
+          x="${x}"
+          y="${y}"
+          width="4.5"
+          height="1.8"
+          rx=".5"/>
+
+        <rect
+          class="st-car-window"
+          x="${x + 1}"
+          y="${y + .35}"
+          width="1.6"
+          height=".9"
+          rx=".2"/>
+      `;
+
+    } else if (i % 4 === 2) {
+
+      streetObjects += `
+        <rect
+          class="st-light"
+          x="${x-.25}"
+          y="${y-1.5}"
+          width=".5"
+          height="3"
+          rx=".2"/>
+
+        <circle
+          class="st-light"
+          cx="${x}"
+          cy="${y-1.5}"
+          r=".7"/>
+      `;
+
+    } else {
+
+      streetObjects += `
+        <circle
+          class="st-fire"
+          cx="${x}"
+          cy="${y}"
+          r=".9"/>
+      `;
+    }
+  }
+
+  /* =========================
+     WATERFRONT
+     ========================= */
+
+  const water = isWater ? `
+    <path
+      class="st-water"
+      d="
+        M88 -5
+        H105
+        V105
+        H91
+        C86 91 94 78 89 65
+        C84 51 95 39 90 26
+        C86 14 94 4 88 -5
+        Z
+      "/>
+  ` : '';
+
+  /* =========================
+     FOCUS BUILDING
+     ========================= */
+
+  const poiX = 50;
+  const poiY = 50;
+
+  const focusBuilding = `
+    <rect
+      class="st-focus"
+      x="${poiX - 15}"
+      y="${poiY - 11}"
+      width="30"
+      height="22"
+      rx="2"/>
+
+    <rect
+      class="st-interior"
+      x="${poiX - 11}"
+      y="${poiY - 7}"
+      width="22"
+      height="14"
+      rx="1"/>
+
+    <rect
+      class="st-wall"
+      x="${poiX - 11}"
+      y="${poiY - 7}"
+      width="22"
+      height="2"/>
+
+    <rect
+      class="st-floor"
+      x="${poiX - 8}"
+      y="${poiY - 3}"
+      width="5"
+      height="3"/>
+
+    <rect
+      class="st-floor"
+      x="${poiX + 3}"
+      y="${poiY - 3}"
+      width="5"
+      height="3"/>
+
+    <rect
+      class="st-furniture"
+      x="${poiX - 8}"
+      y="${poiY + 2}"
+      width="5"
+      height="2"
+      rx=".5"/>
+
+    <rect
+      class="st-furniture"
+      x="${poiX + 2}"
+      y="${poiY + 1}"
+      width="6"
+      height="3"
+      rx=".5"/>
+
+    <rect
+      class="st-door"
+      x="${poiX - 1}"
+      y="${poiY + 5}"
+      width="2"
+      height="2"/>
+
+    <rect
+      class="st-sign"
+      x="${poiX - 8}"
+      y="${poiY - 6}"
+      width="16"
+      height="2"
+      rx=".4"/>
+
+    <text
+      class="st-sign-text"
+      x="${poiX}"
+      y="${poiY - 4.5}"
+      text-anchor="middle">
+      ${poiName}
+    </text>
+
+    <text
+      class="st-room-label"
+      x="${poiX - 5}"
+      y="${poiY - 1}"
+      text-anchor="middle">
+      FRONT
+    </text>
+
+    <text
+      class="st-room-label"
+      x="${poiX + 5}"
+      y="${poiY - 1}"
+      text-anchor="middle">
+      MAIN
+    </text>
+
+    <text
+      class="st-room-label"
+      x="${poiX}"
+      y="${poiY + 5}"
+      text-anchor="middle">
+      ENTRY
+    </text>
+  `;
+
+  /* =========================
+     STREET LABELS
+     ========================= */
+
+  const roadLabels = `
+    <text
+      class="st-road-label"
+      x="27"
+      y="47"
+      text-anchor="middle">
+      MARKET ST
+    </text>
+
+    <text
+      class="st-road-label"
+      x="58"
+      y="18"
+      text-anchor="middle">
+      7TH AVE
+    </text>
+
+    <text
+      class="st-road-label"
+      x="77"
+      y="63"
+      text-anchor="middle">
+      OAK ST
+    </text>
+  `;
+
+  /* =========================
+     RETURN LEVEL 3
+     ========================= */
+
+  return `
+    <div class="street-detail-map">
+
+      <div class="nb-topbar">
+
+        <button
+          class="nb-back"
+          onclick="exitStreetDetail()">
+          ‹ ${loc.toUpperCase()}
+        </button>
+
+        <div>
+          <b>${poiName}</b>
+          <span>STREET / BUILDING MAP</span>
+        </div>
+
+        <span class="nb-compass">
+          N ↑
+        </span>
+
+      </div>
+
+      <div
+        class="st-viewport"
+        id="nbViewport">
+
+        <div
+          class="nb-world"
+          id="nbWorld">
+
+          <svg
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-label="${loc} street level map">
+
+            <rect
+              width="100"
+              height="100"
+              class="st-land"/>
+
+            ${water}
+
+            ${sidewalks}
+
+            ${streets.join('')}
+
+            ${crossings}
+
+            ${park}
+
+            ${parking}
+
+            ${buildings}
+
+            ${streetObjects}
+
+            ${roadLabels}
+
+            ${focusBuilding}
+
+            <g
+              class="st-pin"
+              transform="translate(${poiX} ${poiY + 9})">
+
+              <circle r="5"/>
+
+              <circle r="1.8"/>
+
+            </g>
+
+          </svg>
+
+        </div>
+
+        <div class="nb-zoom">
+
+          <button
+            onclick="nbZoom(0.2)">
+            +
+          </button>
+
+          <button
+            onclick="nbReset()">
+            ⌂
+          </button>
+
+          <button
+            onclick="nbZoom(-0.2)">
+            −
+          </button>
+
+        </div>
+
+      </div>
+
+      <div class="st-info">
+
+        <div>
+
+          <strong>
+            📍 ${poiName}
+          </strong>
+
+          <span>
+            ${loc} · street-level interaction point
+          </span>
+
+        </div>
+
+        <div class="st-actions">
+
+          <button
+            class="btn"
+            onclick="streetAction(
+              ${JSON.stringify(loc).replace(/"/g,'&quot;')},
+              ${JSON.stringify(poi || {}).replace(/"/g,'&quot;')},
+              'inspect'
+            )">
+            INSPECT · 3 ENERGY
+          </button>
+
+          <button
+            class="btn"
+            onclick="streetAction(
+              ${JSON.stringify(loc).replace(/"/g,'&quot;')},
+              ${JSON.stringify(poi || {}).replace(/"/g,'&quot;')},
+              'business'
+            )">
+            CHECK BUSINESS
+          </button>
+
+          <button
+            class="btn"
+            onclick="streetAction(
+              ${JSON.stringify(loc).replace(/"/g,'&quot;')},
+              ${JSON.stringify(poi || {}).replace(/"/g,'&quot;')},
+              'contact'
+            )">
+            TALK CONTACT
+          </button>
+
+          <button
+            class="btn btn-green"
+            onclick="streetAction(
+              ${JSON.stringify(loc).replace(/"/g,'&quot;')},
+              ${JSON.stringify(poi || {}).replace(/"/g,'&quot;')},
+              'mission'
+            )">
+            TAKE LOCAL JOB
+          </button>
+
+        </div>
+
+        <span class="st-mini-legend">
+          ● YOU &nbsp; ▪ BUILDINGS &nbsp; ━ STREETS
+        </span>
+
+      </div>
+
+    </div>
+  `;
 }
 
 function neighborhoodSeed(loc) {
