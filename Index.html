@@ -2885,10 +2885,15 @@ function renderStreetDetail(loc, poi) {
     </div>
   `;
 }
-
+  function renderNeighborhoodMap(loc) {
+  const seed = neighborhoodSeed(loc);
 function neighborhoodSeed(loc) {
-  return Array.from(loc).reduce((n,c,i) => (n + c.charCodeAt(0)*(i+3)) % 997, 0);
+  return Array.from(loc).reduce(
+    (n, c, i) => (n + c.charCodeAt(0) * (i + 3)) % 997,
+    0
+  );
 }
+
 function renderNeighborhoodMap(loc) {
   const seed = neighborhoodSeed(loc);
 
@@ -2953,37 +2958,72 @@ function renderNeighborhoodMap(loc) {
   ].includes(loc);
 
   /* =========================
-     STREET NETWORK
+     ROADS
      ========================= */
 
   const roads = [];
 
-  // Main horizontal avenue
   roads.push(`
-    <path class="nb-road" d="M-5 50 H105 V60 H-5Z"/>
-    <path class="nb-road-mark" d="M0 55H100" stroke-dasharray="2 2"/>
+    <rect x="-5" y="47" width="110" height="12"
+      rx="2" fill="#ffffff"/>
+
+    <path class="nb2-centerline"
+      d="M0 53 H100"/>
+
+    <path d="M0 47.8 H100"
+      stroke="#d1d8d4" stroke-width=".7" fill="none"/>
+
+    <path d="M0 58.2 H100"
+      stroke="#d1d8d4" stroke-width=".7" fill="none"/>
   `);
 
-  // Main vertical avenue
   roads.push(`
-    <path class="nb-road" d="M45 -5 H55 V105 H45Z"/>
-    <path class="nb-road-mark" d="M50 0V100" stroke-dasharray="2 2"/>
+    <rect x="44" y="-5" width="12" height="110"
+      rx="2" fill="#ffffff"/>
+
+    <path class="nb2-centerline"
+      d="M50 0 V100"/>
+
+    <path d="M44.8 0 V100"
+      stroke="#d1d8d4" stroke-width=".7" fill="none"/>
+
+    <path d="M55.2 0 V100"
+      stroke="#d1d8d4" stroke-width=".7" fill="none"/>
   `);
 
-  // Side streets
-  [15,30,75,90].forEach(y => {
+  [14,29,76,91].forEach(y => {
     roads.push(`
-      <path class="nb-road-minor" d="M-5 ${y-3} H105 V${y+3} H-5Z"/>
-      <path class="nb-sidewalk" d="M0 ${y-4}H100V${y-3}H0Z"/>
-      <path class="nb-sidewalk" d="M0 ${y+3}H100V${y+4}H0Z"/>
+      <rect x="-5" y="${y-2}"
+        width="110" height="4"
+        rx="1" fill="#ffffff"/>
+
+      <path d="M0 ${y-2.8} H100"
+        stroke="#d1d8d4"
+        stroke-width=".65"
+        fill="none"/>
+
+      <path d="M0 ${y+2.8} H100"
+        stroke="#d1d8d4"
+        stroke-width=".65"
+        fill="none"/>
     `);
   });
 
-  [20,35,65,80].forEach(x => {
+  [19,34,66,81].forEach(x => {
     roads.push(`
-      <path class="nb-road-minor" d="M${x-3} -5H${x+3}V105H${x-3}Z"/>
-      <path class="nb-sidewalk" d="M${x-4} 0H${x-3}V100H${x-4}Z"/>
-      <path class="nb-sidewalk" d="M${x+3} 0H${x+4}V100H${x+3}Z"/>
+      <rect x="${x-2}" y="-5"
+        width="4" height="110"
+        rx="1" fill="#ffffff"/>
+
+      <path d="M${x-2.8} 0 V100"
+        stroke="#d1d8d4"
+        stroke-width=".65"
+        fill="none"/>
+
+      <path d="M${x+2.8} 0 V100"
+        stroke="#d1d8d4"
+        stroke-width=".65"
+        fill="none"/>
     `);
   });
 
@@ -2993,92 +3033,163 @@ function renderNeighborhoodMap(loc) {
 
   const crossings = [];
 
-  [48,53,58].forEach(y => {
-    for(let i=0;i<7;i++){
-      crossings.push(
-        `<rect class="nb-crosswalk"
-          x="${43+i*2}" y="${y}" width="1.1" height="3"/>`
-      );
+  [49,52,55].forEach(y => {
+    for(let i=0;i<8;i++){
+      crossings.push(`
+        <rect
+          x="${42+i*2}"
+          y="${y}"
+          width="1"
+          height="1.8"
+          rx=".2"
+          fill="#c7ceca"
+        />
+      `);
     }
   });
 
-  [48,53,58].forEach(x => {
-    for(let i=0;i<7;i++){
-      crossings.push(
-        `<rect class="nb-crosswalk"
-          x="${x}" y="${43+i*2}" width="3" height="1.1"/>`
-      );
+  [47,50,53,56].forEach(x => {
+    for(let i=0;i<8;i++){
+      crossings.push(`
+        <rect
+          x="${x}"
+          y="${42+i*2}"
+          width="1.8"
+          height="1"
+          rx=".2"
+          fill="#c7ceca"
+        />
+      `);
     }
   });
 
   /* =========================
-     LOTS + BUILDINGS
+     BUILDINGS
      ========================= */
 
-  const buildings = [
-    [5,5,12,8],
-    [23,5,10,8],
-    [68,5,12,8],
-    [84,5,11,8],
-
-    [5,20,12,7],
-    [23,20,10,7],
-    [68,20,12,7],
-    [84,20,11,7],
-
-    [5,68,12,8],
-    [23,68,11,8],
-    [68,68,12,8],
-    [84,68,11,8],
-
-    [5,84,12,9],
-    [23,84,10,9],
-    [68,84,12,9],
-    [84,84,11,9]
+  const buildingPalette = [
+    "#d7ddd9",
+    "#cfd7d2",
+    "#dce2de",
+    "#c8d1cc",
+    "#e0e4e1"
   ];
 
-  const buildingSvg = buildings.map((b,i) => {
+  const roofPalette = [
+    "#aeb8b2",
+    "#9fa9a3",
+    "#b6beb9",
+    "#929d97"
+  ];
+
+  const blocks = [
+    [4,4,12,7],
+    [22,4,10,7],
+    [68,4,12,7],
+    [84,4,11,7],
+
+    [4,19,12,7],
+    [22,19,10,7],
+    [68,19,12,7],
+    [84,19,11,7],
+
+    [4,63,12,9],
+    [22,63,11,9],
+    [68,63,12,9],
+    [84,63,11,9],
+
+    [4,82,12,10],
+    [22,82,10,10],
+    [68,82,12,10],
+    [84,82,11,10]
+  ];
+
+  const buildings = blocks.map((b,i) => {
     const [x,y,w,h] = b;
-    const dark = (i + seed) % 4 === 0;
+
+    const building =
+      buildingPalette[(seed + i) % buildingPalette.length];
+
+    const roof =
+      roofPalette[(seed + i * 2) % roofPalette.length];
 
     let windows = "";
 
-    for(let wx=x+2; wx<x+w-1; wx+=3) {
+    for(let wx=x+2; wx<x+w-1.5; wx+=3) {
       windows += `
-        <rect class="nb-window"
-          x="${wx}" y="${y+2}"
-          width="1.5" height="1.8" rx=".2"/>
+        <rect
+          x="${wx}"
+          y="${y+2}"
+          width="1.35"
+          height="1.5"
+          rx=".15"
+          fill="#9dbbc3"
+          stroke="#819da4"
+          stroke-width=".2"
+        />
 
-        <rect class="nb-window"
-          x="${wx}" y="${y+h-3.5}"
-          width="1.5" height="1.8" rx=".2"/>
+        <rect
+          x="${wx}"
+          y="${y+h-3.5}"
+          width="1.35"
+          height="1.5"
+          rx=".15"
+          fill="#9dbbc3"
+          stroke="#819da4"
+          stroke-width=".2"
+        />
       `;
     }
 
     return `
       <g>
-        <rect class="nb-lot"
-          x="${x-1}" y="${y-1}"
-          width="${w+2}" height="${h+2}"
-          rx="1"/>
+        <rect
+          x="${x-1}"
+          y="${y-1}"
+          width="${w+2}"
+          height="${h+2}"
+          rx="1.3"
+          fill="#c2cbc6"
+          stroke="#b1bbb5"
+          stroke-width=".35"
+        />
 
-        <rect class="${dark ? "nb-building-dark" : "nb-building"}"
-          x="${x}" y="${y}"
-          width="${w}" height="${h}"
-          rx=".8"/>
+        <rect
+          x="${x}"
+          y="${y}"
+          width="${w}"
+          height="${h}"
+          rx=".8"
+          fill="${building}"
+          stroke="#9ca8a1"
+          stroke-width=".45"
+        />
 
-        <rect class="nb-roof"
-          x="${x+.7}" y="${y+.7}"
-          width="${w-1.4}" height="1.2"
-          rx=".3"/>
+        <rect
+          x="${x+.7}"
+          y="${y+.7}"
+          width="${w-1.4}"
+          height="1.3"
+          rx=".3"
+          fill="${roof}"
+        />
+
+        <path
+          d="M${x+1.2} ${y+2.7} H${x+w-1.2}"
+          stroke="#8e9993"
+          stroke-width=".35"
+        />
 
         ${windows}
 
-        <rect class="nb-door"
+        <rect
           x="${x+w/2-.7}"
           y="${y+h-2.2}"
           width="1.4"
-          height="2"/>
+          height="2"
+          rx=".2"
+          fill="#697770"
+        />
       </g>
     `;
   }).join("");
@@ -3088,55 +3199,87 @@ function renderNeighborhoodMap(loc) {
      ========================= */
 
   const park = `
-    <rect class="nb-park"
-      x="7" y="34"
-      width="26" height="22"
-      rx="3"/>
+    <g>
+      <rect
+        x="6" y="34"
+        width="27" height="21"
+        rx="3"
+        fill="#cbdccf"
+        stroke="#a9bdb0"
+        stroke-width=".5"
+      />
 
-    <path class="nb-sidewalk"
-      d="M9 45 Q20 37 31 45 Q20 53 9 45Z"/>
+      <path
+        d="M9 44 Q19 37 30 44 Q20 51 9 44Z"
+        fill="none"
+        stroke="#9db4a4"
+        stroke-width=".7"
+      />
 
-    <circle class="nb-tree" cx="12" cy="38" r="2"/>
-    <circle class="nb-tree" cx="18" cy="36" r="2"/>
-    <circle class="nb-tree" cx="27" cy="39" r="2"/>
-    <circle class="nb-tree" cx="11" cy="51" r="2"/>
-    <circle class="nb-tree" cx="29" cy="52" r="2"/>
+      <path
+        d="M19 37 V51"
+        stroke="#a5b9ab"
+        stroke-width=".55"
+      />
+
+      <circle cx="11" cy="38" r="1.7" fill="#7f9d88"/>
+      <circle cx="18" cy="36.5" r="1.9" fill="#789680"/>
+      <circle cx="27" cy="39" r="1.8" fill="#829f8a"/>
+      <circle cx="12" cy="51" r="1.8" fill="#789680"/>
+      <circle cx="29" cy="51" r="1.8" fill="#819e89"/>
+    </g>
   `;
 
   /* =========================
-     PARKING LOT
+     PARKING
      ========================= */
 
   let parkingSpaces = "";
 
   for(let i=0;i<6;i++){
     parkingSpaces += `
-      <path class="nb-parking-line"
-        d="M${69+i*3.5} 36V45"/>
+      <path
+        d="M${69+i*3.5} 36 V44.5"
+        stroke="#aeb8b3"
+        stroke-width=".45"
+      />
     `;
   }
 
   const parking = `
-    <rect class="nb-parking"
-      x="67" y="34"
-      width="25" height="14"
-      rx="1"/>
+    <g>
+      <rect
+        x="67" y="34"
+        width="25" height="14"
+        rx="1.2"
+        fill="#c0c8c4"
+        stroke="#a7b1ac"
+        stroke-width=".5"
+      />
 
-    ${parkingSpaces}
+      ${parkingSpaces}
 
-    <rect class="nb-parking"
-      x="67" y="34"
-      width="25" height="2"
-      opacity=".4"/>
+      <path
+        d="M68 35 H91"
+        stroke="#a5afa9"
+        stroke-width=".6"
+      />
+
+      <path
+        d="M68 46 H91"
+        stroke="#a5afa9"
+        stroke-width=".6"
+      />
+    </g>
   `;
 
   /* =========================
-     TREES / CARS / STREETLIGHTS
+     TREES / CARS / LIGHTS
      ========================= */
 
   let streetStuff = "";
 
-  for(let i=0;i<22;i++){
+  for(let i=0;i<24;i++){
 
     const x = 4 + ((seed + i*17) % 92);
     const y = 7 + ((seed + i*29) % 88);
@@ -3144,41 +3287,97 @@ function renderNeighborhoodMap(loc) {
     if(i % 4 === 0){
 
       streetStuff += `
-        <circle class="nb-trunk"
-          cx="${x}" cy="${y+1}" r=".65"/>
+        <circle
+          cx="${x}"
+          cy="${y+1}"
+          r=".55"
+          fill="#766b5d"
+        />
 
-        <circle class="nb-tree"
-          cx="${x}" cy="${y}" r="1.8"/>
+        <circle
+          cx="${x}"
+          cy="${y}"
+          r="1.7"
+          fill="#789681"
+        />
+
+        <circle
+          cx="${x-.8}"
+          cy="${y+.4}"
+          r=".8"
+          fill="#839f8b"
+        />
+
+        <circle
+          cx="${x+.8}"
+          cy="${y+.4}"
+          r=".8"
+          fill="#6f8c79"
+        />
       `;
 
     } else if(i % 4 === 1){
 
       streetStuff += `
         <g transform="rotate(${i%2 ? 90 : 0} ${x} ${y})">
-          <rect class="nb-car"
-            x="${x-2}" y="${y-.9}"
-            width="4" height="1.8"
-            rx=".5"/>
 
-          <rect class="nb-car-window"
-            x="${x-.8}" y="${y-.6}"
-            width="1.6" height="1.2"
-            rx=".2"/>
+          <rect
+            x="${x-2}"
+            y="${y-.85}"
+            width="4"
+            height="1.7"
+            rx=".45"
+            fill="#66736d"
+            stroke="#4f5b56"
+            stroke-width=".25"
+          />
+
+          <rect
+            x="${x-.8}"
+            y="${y-.58}"
+            width="1.6"
+            height="1.05"
+            rx=".18"
+            fill="#9ebdc5"
+          />
+
+          <circle
+            cx="${x-1.25}"
+            cy="${y+.9}"
+            r=".32"
+            fill="#414b47"
+          />
+
+          <circle
+            cx="${x+1.25}"
+            cy="${y+.9}"
+            r=".32"
+            fill="#414b47"
+          />
         </g>
       `;
 
     } else if(i % 4 === 2){
 
       streetStuff += `
-        <rect class="nb-light"
-          x="${x-.25}" y="${y-1.5}"
-          width=".5" height="3"
-          rx=".2"/>
+        <rect
+          x="${x-.18}"
+          y="${y-1.6}"
+          width=".36"
+          height="3.2"
+          rx=".15"
+          fill="#69766f"
+        />
 
-        <circle class="nb-light"
-          cx="${x}" cy="${y-1.5}" r=".7"/>
+        <circle
+          cx="${x}"
+          cy="${y-1.6}"
+          r=".65"
+          fill="#d4d9d5"
+          stroke="#89958e"
+          stroke-width=".2"
+        />
       `;
-
     }
   }
 
@@ -3187,96 +3386,180 @@ function renderNeighborhoodMap(loc) {
      ========================= */
 
   const waterfrontSvg = waterfront ? `
-    <path class="nb-water"
-      d="M91 -5
-         H105
-         V105
-         H91
-         C86 88 96 75 91 62
-         C86 48 96 35 91 22
-         C87 10 96 2 91 -5Z"/>
+    <path
+      d="
+        M91 -5
+        H105
+        V105
+        H91
+        C87 94 96 84 91 72
+        C86 60 96 49 91 37
+        C87 26 96 15 91 5
+        C89 1 91 -2 91 -5
+        Z
+      "
+      fill="#b8d5dc"
+    />
 
     <path
-      d="M94 5
-         Q99 9 94 13
-         T94 21
-         T94 29
-         T94 37
-         T94 45
-         T94 53
-         T94 61
-         T94 69
-         T94 77
-         T94 85
-         T94 94"
+      d="
+        M94 5
+        Q99 9 94 13
+        T94 21
+        T94 29
+        T94 37
+        T94 45
+        T94 53
+        T94 61
+        T94 69
+        T94 77
+        T94 85
+        T94 94
+      "
       fill="none"
-      stroke="#b8cdd0"
-      stroke-width=".6"
-      opacity=".65"/>
+      stroke="#94bfc9"
+      stroke-width=".7"
+    />
   ` : "";
 
   /* =========================
-     LANDMARKS
+     POI MARKERS
      ========================= */
 
   const landmarkSvg = lm.map(([name,x,y,type]) => {
 
-    let symbol = "■";
+    let icon = "";
 
-    if(type === "park") symbol = "◆";
-    if(type === "water") symbol = "≈";
-    if(type === "shop") symbol = "▦";
+    if(type === "park"){
+      icon = `
+        <circle
+          cx="${x}" cy="${y}" r="4"
+          fill="#d5e5d8"
+          stroke="#66836e"
+          stroke-width=".65"
+        />
+        <circle cx="${x-1.2}" cy="${y+.5}" r=".9" fill="#6e9278"/>
+        <circle cx="${x+1}" cy="${y-.8}" r=".9" fill="#789b81"/>
+      `;
+    }
+
+    else if(type === "water"){
+      icon = `
+        <circle
+          cx="${x}" cy="${y}" r="4"
+          fill="#d7e9ed"
+          stroke="#6797a2"
+          stroke-width=".65"
+        />
+        <path
+          d="M${x-2} ${y}
+             Q${x-1} ${y-1} ${x} ${y}
+             T${x+2} ${y}"
+          fill="none"
+          stroke="#5f94a0"
+          stroke-width=".65"
+        />
+      `;
+    }
+
+    else if(type === "shop"){
+      icon = `
+        <circle
+          cx="${x}" cy="${y}" r="4"
+          fill="#e4e8e5"
+          stroke="#66756e"
+          stroke-width=".65"
+        />
+        <rect
+          x="${x-1.6}" y="${y-1.5}"
+          width="3.2" height="3"
+          rx=".25"
+          fill="#77857e"
+        />
+      `;
+    }
+
+    else {
+      icon = `
+        <circle
+          cx="${x}" cy="${y}" r="4"
+          fill="#e2e7e4"
+          stroke="#56655e"
+          stroke-width=".65"
+        />
+        <rect
+          x="${x-1.5}" y="${y-1.5}"
+          width="3" height="3"
+          fill="#718078"
+        />
+      `;
+    }
 
     return `
-      <g class="nb-landmark"
+      <g
+        class="nb2-poi"
         onclick="openStreetDetail(
           ${JSON.stringify(loc).replace(/"/g,'&quot;')},
           ${JSON.stringify(name).replace(/"/g,'&quot;')},
           ${JSON.stringify(type).replace(/"/g,'&quot;')}
-        )">
-
-        <rect class="nb-lot"
-          x="${x-7}" y="${y-5}"
-          width="14" height="10"
-          rx="1.5"/>
-
-        <rect class="nb-building"
-          x="${x-5.5}" y="${y-3.5}"
-          width="11" height="7"
-          rx=".8"/>
-
-        <rect class="nb-roof"
-          x="${x-5}" y="${y-3}"
-          width="10" height="1.2"/>
-
-        <text
-          x="${x}"
-          y="${y+1.5}"
-          text-anchor="middle"
-          font-size="4"
-          fill="#e8ece9">
-          ${symbol}
-        </text>
-
-        <text
-          class="nb-lm-label"
-          x="${x}"
-          y="${y+8}"
-          text-anchor="middle">
-          ${name}
-        </text>
+        )"
+      >
+        ${icon}
       </g>
     `;
   }).join("");
 
+  /* =========================
+     GPS PIN
+     ========================= */
+
   const current = state.location === loc;
 
+  const currentPin = `
+    <g
+      class="nb2-current-pin"
+      transform="translate(50 55)"
+    >
+
+      <circle
+        r="5"
+        fill="rgba(24,119,242,.18)"
+      />
+
+      <path
+        d="
+          M0-4.2
+          C-3.1-4.2-5.1-2-5.1.8
+          C-5.1 4.2 0 8 0 8
+          C0 8 5.1 4.2 5.1.8
+          C5.1-2 3.1-4.2 0-4.2Z
+        "
+        fill="#1877f2"
+        stroke="#ffffff"
+        stroke-width="1"
+      />
+
+      <circle
+        cy=".2"
+        r="1.7"
+        fill="#ffffff"
+      />
+
+    </g>
+  `;
+
   return `
-    <div class="neighborhood-map" id="neighborhoodMap">
+    <div
+      class="neighborhood-map nb2-clean"
+      id="neighborhoodMap"
+    >
 
       <div class="nb-topbar">
-        <button class="nb-back"
-          onclick="exitMapDetail()">
+
+        <button
+          class="nb-back"
+          onclick="exitMapDetail()"
+        >
           ‹ CITY MAP
         </button>
 
@@ -3286,21 +3569,30 @@ function renderNeighborhoodMap(loc) {
         </div>
 
         <span class="nb-compass">N ↑</span>
+
       </div>
 
-      <div class="nb-viewport" id="nbViewport">
+      <div
+        class="nb-viewport nb2-viewport"
+        id="nbViewport"
+      >
 
-        <div class="nb-world" id="nbWorld">
+        <div
+          class="nb-world"
+          id="nbWorld"
+        >
 
           <svg
             viewBox="0 0 100 100"
             preserveAspectRatio="none"
-            aria-label="${loc} neighborhood map">
+            aria-label="${loc} neighborhood map"
+          >
 
             <rect
               width="100"
               height="100"
-              fill="#b9c3bc"/>
+              fill="#e8eee9"
+            />
 
             ${waterfrontSvg}
 
@@ -3312,35 +3604,13 @@ function renderNeighborhoodMap(loc) {
 
             ${parking}
 
-            ${buildingSvg}
+            ${buildings}
 
             ${streetStuff}
 
-            <text
-              class="nb-road-label"
-              x="50"
-              y="48"
-              text-anchor="middle">
-              MAIN STREET
-            </text>
-
-            <text
-              class="nb-road-label"
-              x="50"
-              y="18"
-              text-anchor="middle">
-              7TH AVE
-            </text>
-
             ${landmarkSvg}
 
-            <g
-              class="nb-pin nb-gps"
-              transform="translate(50 55)">
-
-              <circle r="4.5"/>
-              <circle r="1.8"/>
-            </g>
+            ${currentPin}
 
           </svg>
 
@@ -3348,11 +3618,26 @@ function renderNeighborhoodMap(loc) {
 
         <div class="nb-zoom">
 
-          <button onclick="nbZoom(.2)">+</button>
+          <button
+            onclick="nbZoom(.2)"
+            aria-label="Zoom in"
+          >
+            +
+          </button>
 
-          <button onclick="nbReset()">⌂</button>
+          <button
+            onclick="nbReset()"
+            aria-label="Reset map"
+          >
+            ⌂
+          </button>
 
-          <button onclick="nbZoom(-.2)">−</button>
+          <button
+            onclick="nbZoom(-.2)"
+            aria-label="Zoom out"
+          >
+            −
+          </button>
 
         </div>
 
@@ -3361,13 +3646,22 @@ function renderNeighborhoodMap(loc) {
       <div class="nb-bottom">
 
         <div>
+
           <strong>
-            ${current ? "● YOU ARE HERE" : "📍 " + loc.toUpperCase()}
+            ${
+              current
+                ? "● YOU ARE HERE"
+                : "📍 " + loc.toUpperCase()
+            }
           </strong>
 
           <span>
-            ${LOCATION_FLAVOR[loc] || "Local streets, businesses and landmarks."}
+            ${
+              LOCATION_FLAVOR[loc] ||
+              "Local streets, businesses and landmarks."
+            }
           </span>
+
         </div>
 
         <div class="nb-actions">
@@ -3377,7 +3671,8 @@ function renderNeighborhoodMap(loc) {
             onclick="neighborhoodAction(
               ${JSON.stringify(loc).replace(/"/g,'&quot;')},
               'scout'
-            )">
+            )"
+          >
             SCOUT · 5 ENERGY
           </button>
 
@@ -3386,25 +3681,29 @@ function renderNeighborhoodMap(loc) {
             onclick="neighborhoodAction(
               ${JSON.stringify(loc).replace(/"/g,'&quot;')},
               'contacts'
-            )">
+            )"
+          >
             CHECK CONTACT
           </button>
 
           ${
             state.territories?.[loc]
-            ?
-            '<button class="btn" disabled>⌂ TERRITORY CONTROLLED</button>'
-            :
-            `
-            <button
-              class="btn btn-green"
-              onclick="neighborhoodAction(
-                ${JSON.stringify(loc).replace(/"/g,'&quot;')},
-                'territory'
-              )">
-              CLAIM BLOCK · $${TERRITORY_COST.toLocaleString()}
-            </button>
-            `
+              ? `
+                <button class="btn" disabled>
+                  ⌂ TERRITORY CONTROLLED
+                </button>
+              `
+              : `
+                <button
+                  class="btn btn-green"
+                  onclick="neighborhoodAction(
+                    ${JSON.stringify(loc).replace(/"/g,'&quot;')},
+                    'territory'
+                  )"
+                >
+                  CLAIM BLOCK · $${TERRITORY_COST.toLocaleString()}
+                </button>
+              `
           }
 
         </div>
@@ -3433,6 +3732,429 @@ function renderNeighborhoodMap(loc) {
     </div>
   `;
 }
+  /* =========================================
+     LEVEL 2 — CLEAN GPS NEIGHBORHOOD MAP
+     ========================================= */
+
+  const landmarks = {
+    "Downtown":[
+      ["CITY HALL",72,24,"civic"],
+      ["PARKING GARAGE",27,72,"building"],
+      ["CENTRAL PLAZA",52,47,"park"]
+    ],
+    "Westside":[
+      ["WESTSIDE PARK",27,36,"park"],
+      ["CORNER MARKET",68,64,"shop"],
+      ["COMMUNITY CENTER",48,25,"civic"]
+    ],
+    "Bungalow Park":[
+      ["BUNGALOW PARK",28,70,"park"],
+      ["MARINA WALK",75,25,"water"],
+      ["PARK OFFICE",53,52,"civic"]
+    ],
+    "Venice Park":[
+      ["VENICE GREEN",28,42,"park"],
+      ["LOCAL SHOPS",68,28,"shop"],
+      ["CANAL WALK",78,72,"water"]
+    ],
+    "Back Maryland":[
+      ["INDUSTRIAL YARD",70,30,"building"],
+      ["COMMUNITY LOT",31,69,"park"],
+      ["SERVICE ROAD",55,43,"shop"]
+    ],
+    "Carver Hall":[
+      ["CARVER PARK",30,32,"park"],
+      ["APARTMENT ROW",70,62,"building"],
+      ["MAIN PLAZA",50,48,"civic"]
+    ],
+    "Boardwalk":[
+      ["BOARDWALK",52,82,"water"],
+      ["ARCADE ROW",25,48,"shop"],
+      ["PIER",79,30,"water"]
+    ],
+    "Margate":[
+      ["BEACH PARK",26,30,"park"],
+      ["COASTAL SHOPS",69,58,"shop"],
+      ["PROMENADE",52,82,"water"]
+    ]
+  };
+
+  const lm = landmarks[loc] || [
+    ["NEIGHBORHOOD PARK",25,30,"park"],
+    ["LOCAL SHOPS",70,34,"shop"],
+    ["COMMUNITY CENTER",52,68,"civic"]
+  ];
+
+  const waterfront = [
+    "Boardwalk",
+    "Bungalow Park",
+    "Venice Park",
+    "Margate",
+    "Atlantic City Marina",
+    "Ventnor",
+    "Brigantine",
+    "Gardner's Basin"
+  ].includes(loc);
+
+  /* =========================================
+     BUILDING COLORS
+     Inline styles are intentional so the old
+     nb-building CSS cannot turn these black.
+     ========================================= */
+
+  const buildingPalette = [
+    "#d7ddd9",
+    "#cfd7d2",
+    "#dce2de",
+    "#c8d1cc",
+    "#e0e4e1"
+  ];
+
+  const roofPalette = [
+    "#aeb8b2",
+    "#9fa9a3",
+    "#b6beb9",
+    "#929d97"
+  ];
+
+  /* =========================================
+     ROAD NETWORK
+     ========================================= */
+
+  const roads = [];
+
+  /* Main east / west avenue */
+  roads.push(`
+    <rect
+      x="-5" y="47"
+      width="110" height="12"
+      rx="2"
+      fill="#ffffff"
+    />
+
+    <path
+      class="nb2-centerline"
+      d="M0 53 H100"
+    />
+
+    <path
+      d="M0 47.8 H100"
+      stroke="#d1d8d4"
+      stroke-width=".7"
+      fill="none"
+    />
+
+    <path
+      d="M0 58.2 H100"
+      stroke="#d1d8d4"
+      stroke-width=".7"
+      fill="none"
+    />
+  `);
+
+  /* Main north / south avenue */
+  roads.push(`
+    <rect
+      x="44" y="-5"
+      width="12" height="110"
+      rx="2"
+      fill="#ffffff"
+    />
+
+    <path
+      class="nb2-centerline"
+      d="M50 0 V100"
+    />
+
+    <path
+      d="M44.8 0 V100"
+      stroke="#d1d8d4"
+      stroke-width=".7"
+      fill="none"
+    />
+
+    <path
+      d="M55.2 0 V100"
+      stroke="#d1d8d4"
+      stroke-width=".7"
+      fill="none"
+    />
+  `);
+
+  /* Horizontal neighborhood streets */
+  [14,29,76,91].forEach(y => {
+    roads.push(`
+      <rect
+        x="-5"
+        y="${y-2}"
+        width="110"
+        height="4"
+        rx="1"
+        fill="#ffffff"
+      />
+
+      <path
+        d="M0 ${y-2.8} H100"
+        stroke="#d1d8d4"
+        stroke-width=".65"
+        fill="none"
+      />
+
+      <path
+        d="M0 ${y+2.8} H100"
+        stroke="#d1d8d4"
+        stroke-width=".65"
+        fill="none"
+      />
+    `);
+  });
+
+  /* Vertical neighborhood streets */
+  [19,34,66,81].forEach(x => {
+    roads.push(`
+      <rect
+        x="${x-2}"
+        y="-5"
+        width="4"
+        height="110"
+        rx="1"
+        fill="#ffffff"
+      />
+
+      <path
+        d="M${x-2.8} 0 V100"
+        stroke="#d1d8d4"
+        stroke-width=".65"
+        fill="none"
+      />
+
+      <path
+        d="M${x+2.8} 0 V100"
+        stroke="#d1d8d4"
+        stroke-width=".65"
+        fill="none"
+      />
+    `);
+  });
+
+  /* =========================================
+     CROSSWALKS
+     ========================================= */
+
+  const crossings = [];
+
+  [49,52,55].forEach(y => {
+    for(let i=0;i<8;i++){
+      crossings.push(`
+        <rect
+          x="${42+i*2}"
+          y="${y}"
+          width="1"
+          height="1.8"
+          rx=".2"
+          fill="#c7ceca"
+        />
+      `);
+    }
+  });
+
+  [47,50,53,56].forEach(x => {
+    for(let i=0;i<8;i++){
+      crossings.push(`
+        <rect
+          x="${x}"
+          y="${42+i*2}"
+          width="1.8"
+          height="1"
+          rx=".2"
+          fill="#c7ceca"
+        />
+      `);
+    }
+  });
+
+  /* =========================================
+     CITY BLOCKS
+     ========================================= */
+
+  const blocks = [
+    [4,4,12,7],
+    [22,4,10,7],
+    [68,4,12,7],
+    [84,4,11,7],
+
+    [4,19,12,7],
+    [22,19,10,7],
+    [68,19,12,7],
+    [84,19,11,7],
+
+    [4,63,12,9],
+    [22,63,11,9],
+    [68,63,12,9],
+    [84,63,11,9],
+
+    [4,82,12,10],
+    [22,82,10,10],
+    [68,82,12,10],
+    [84,82,11,10]
+  ];
+
+  const buildings = blocks.map((b,i) => {
+    const [x,y,w,h] = b;
+
+    const building =
+      buildingPalette[(seed + i) % buildingPalette.length];
+
+    const roof =
+      roofPalette[(seed + i * 2) % roofPalette.length];
+
+    let windows = "";
+
+    for(let wx=x+2; wx<x+w-1.5; wx+=3){
+
+      windows += `
+        <rect
+          x="${wx}"
+          y="${y+2}"
+          width="1.35"
+          height="1.5"
+          rx=".15"
+          fill="#9dbbc3"
+          stroke="#819da4"
+          stroke-width=".2"
+        />
+
+        <rect
+          x="${wx}"
+          y="${y+h-3.5}"
+          width="1.35"
+          height="1.5"
+          rx=".15"
+          fill="#9dbbc3"
+          stroke="#819da4"
+          stroke-width=".2"
+        />
+      `;
+    }
+
+    return `
+      <g>
+
+        <!-- property lot -->
+        <rect
+          x="${x-1}"
+          y="${y-1}"
+          width="${w+2}"
+          height="${h+2}"
+          rx="1.3"
+          fill="#c2cbc6"
+          stroke="#b1bbb5"
+          stroke-width=".35"
+        />
+
+        <!-- building -->
+        <rect
+          x="${x}"
+          y="${y}"
+          width="${w}"
+          height="${h}"
+          rx=".8"
+          fill="${building}"
+          stroke="#9ca8a1"
+          stroke-width=".45"
+        />
+
+        <!-- roof -->
+        <rect
+          x="${x+.7}"
+          y="${y+.7}"
+          width="${w-1.4}"
+          height="1.3"
+          rx=".3"
+          fill="${roof}"
+        />
+
+        <!-- roof detail -->
+        <path
+          d="M${x+1.2} ${y+2.7} H${x+w-1.2}"
+          stroke="#8e9993"
+          stroke-width=".35"
+          opacity=".7"
+        />
+
+        ${windows}
+
+        <!-- entrance -->
+        <rect
+          x="${x+w/2-.7}"
+          y="${y+h-2.2}"
+          width="1.4"
+          height="2"
+          rx=".2"
+          fill="#697770"
+        />
+
+      </g>
+    `;
+  }).join("");
+
+  /* =========================================
+     PARK
+     ========================================= */
+
+  const park = `
+    <g>
+
+      <rect
+        x="6"
+        y="34"
+        width="27"
+        height="21"
+        rx="3"
+        fill="#cbdccf"
+        stroke="#a9bdb0"
+        stroke-width=".5"
+      />
+
+      <path
+        d="M9 44 Q19 37 30 44 Q20 51 9 44Z"
+        fill="none"
+        stroke="#9db4a4"
+        stroke-width=".7"
+      />
+
+      <path
+        d="M19 37 V51"
+        stroke="#a5b9ab"
+        stroke-width=".55"
+      />
+
+      <circle cx="11" cy="38" r="1.7" fill="#7f9d88"/>
+      <circle cx="18" cy="36.5" r="1.9" fill="#789680"/>
+      <circle cx="27" cy="39" r="1.8" fill="#829f8a"/>
+      <circle cx="12" cy="51" r="1.8" fill="#789680"/>
+      <circle cx="29" cy="51" r="1.8" fill="#819e89"/>
+
+      <circle cx="11" cy="38" r=".55" fill="#697f70"/>
+      <circle cx="18" cy="36.5" r=".55" fill="#697f70"/>
+      <circle cx="27" cy="39" r=".55" fill="#697f70"/>
+      <circle cx="12" cy="51" r=".55" fill="#697f70"/>
+      <circle cx="29" cy="51" r=".55" fill="#697f70"/>
+
+    </g>
+  `;
+
+  /* =========================================
+     PARKING LOT
+     ========================================= */
+
+  let parkingSpaces = "";
+
+  for(let i=0;i<6;i++){
+    parkingSpaces += `
+      <path
+        d="M${69+i*3.5} 36 V44.5"
+        stroke
 let nbZoomLevel=1, nbPanX=0, nbPanY=0;
 function nbApply(){const w=document.getElementById('nbWorld');if(!w)return;const z=Math.max(1,Math.min(2.6,nbZoomLevel));nbZoomLevel=z;const m=45*(z-1);nbPanX=Math.max(-m,Math.min(m,nbPanX));nbPanY=Math.max(-m,Math.min(m,nbPanY));w.style.transform=`translate3d(${nbPanX}%,${nbPanY}%,0) scale(${z})`;}
 function nbZoom(d){nbZoomLevel=Math.max(1,Math.min(2.6,nbZoomLevel+d));if(nbZoomLevel===1){nbPanX=0;nbPanY=0;}nbApply();sndClick();}
