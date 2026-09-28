@@ -547,3 +547,265 @@
     .nb-zoom{right:7px;bottom:7px}
     .nb-zoom button{width:29px;height:29px;font-size:16px}
   }
+/* =========================================================
+   STREETLINE — LEVEL 1 GPS CITY MAP
+   Replace the old dark/grid appearance visually only.
+   ========================================================= */
+
+.citymap {
+  position: relative !important;
+  height: 430px !important;
+  overflow: hidden !important;
+  border: 1px solid #c5ccc8 !important;
+  border-radius: 12px !important;
+
+  /* GPS / street-map base */
+  background:
+    radial-gradient(circle at 70% 25%, rgba(255,255,255,.8), transparent 35%),
+    #dfe5e1 !important;
+
+  box-shadow:
+    inset 0 0 35px rgba(60,75,68,.10),
+    0 4px 14px rgba(0,0,0,.14) !important;
+}
+
+/* Remove the old technical grid */
+.citymap {
+  background-image: none !important;
+}
+
+.citymap::before {
+  display: none !important;
+}
+
+/* City roads */
+.cityroads {
+  opacity: 1 !important;
+}
+
+/* Water */
+.citywater {
+  fill: #b8d8e2 !important;
+  stroke: #9cc5d1 !important;
+  stroke-width: 1.2 !important;
+}
+
+/* Main GPS roads */
+.road-main {
+  stroke: #ffffff !important;
+  stroke-width: 5 !important;
+  fill: none !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+/* Secondary roads */
+.road {
+  stroke: #f7f9f8 !important;
+  stroke-width: 3 !important;
+  fill: none !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+/* Make road centers subtly visible */
+.road-dash {
+  stroke: #c7cfcb !important;
+  stroke-width: .7 !important;
+  stroke-dasharray: 2 3 !important;
+  fill: none !important;
+}
+
+/* Kill the old colored territory blobs */
+.map-zone {
+  display: none !important;
+}
+
+/* GPS-style location markers */
+.map-marker {
+  min-width: auto !important;
+  max-width: none !important;
+  padding: 0 !important;
+
+  border: 0 !important;
+  border-radius: 0 !important;
+
+  background: transparent !important;
+  color: #17201c !important;
+
+  box-shadow: none !important;
+  text-align: center !important;
+
+  transform: translate(-50%,-50%) !important;
+}
+
+/* Location name */
+.map-marker .marker-name {
+  display: block !important;
+  margin-top: 19px !important;
+
+  font-size: .58rem !important;
+  font-weight: 800 !important;
+  letter-spacing: .25px !important;
+
+  color: #26332d !important;
+  text-shadow:
+    0 1px 2px rgba(255,255,255,.95),
+    0 0 3px rgba(255,255,255,.8) !important;
+}
+
+/* Hide the old text underneath each marker */
+.map-marker .marker-sub {
+  display: none !important;
+}
+
+/* GPS pin */
+.map-marker .marker-icon {
+  position: absolute !important;
+
+  left: 50% !important;
+  top: 0 !important;
+
+  transform: translate(-50%,-50%) !important;
+
+  width: 18px !important;
+  height: 18px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  margin: 0 !important;
+
+  border-radius: 50% !important;
+
+  background: #ffffff !important;
+  border: 3px solid #1687ff !important;
+
+  color: #1687ff !important;
+
+  font-size: 0 !important;
+
+  box-shadow:
+    0 2px 5px rgba(0,0,0,.28),
+    0 0 0 3px rgba(22,135,255,.12) !important;
+}
+
+/* Little GPS center dot */
+.map-marker .marker-icon::after {
+  content: "" !important;
+
+  width: 6px !important;
+  height: 6px !important;
+
+  border-radius: 50% !important;
+
+  background: #1687ff !important;
+}
+
+/* Current location */
+.marker-current .marker-icon {
+  width: 23px !important;
+  height: 23px !important;
+
+  background: #1687ff !important;
+  border-color: #ffffff !important;
+
+  box-shadow:
+    0 2px 6px rgba(0,0,0,.3),
+    0 0 0 6px rgba(22,135,255,.16) !important;
+}
+
+.marker-current .marker-icon::after {
+  width: 7px !important;
+  height: 7px !important;
+  background: #ffffff !important;
+}
+
+/* Territory locations */
+.marker-owned .marker-icon {
+  border-color: #18a866 !important;
+}
+
+.marker-owned .marker-icon::after {
+  background: #18a866 !important;
+}
+
+/* Danger locations */
+.marker-danger .marker-icon {
+  border-color: #e34d5b !important;
+}
+
+.marker-danger .marker-icon::after {
+  background: #e34d5b !important;
+}
+
+/* Locked locations */
+.marker-locked .marker-icon {
+  border-color: #89928d !important;
+  background: #d9dfdc !important;
+  opacity: .7 !important;
+}
+
+/* Selected location */
+.marker-selected {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Business markers become small GPS-style POIs */
+.business-marker {
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid #aeb9b4 !important;
+  border-radius: 5px !important;
+
+  color: #26332d !important;
+
+  box-shadow: 0 2px 5px rgba(0,0,0,.16) !important;
+}
+
+/* Compass */
+.map-compass {
+  width: 34px !important;
+  height: 44px !important;
+
+  border: 1px solid #b7c1bc !important;
+  border-radius: 8px !important;
+
+  background: rgba(255,255,255,.9) !important;
+
+  color: #26332d !important;
+
+  box-shadow: 0 2px 6px rgba(0,0,0,.15) !important;
+}
+
+.map-compass .arrow {
+  color: #1687ff !important;
+}
+
+/* Map caption */
+.map-caption {
+  background: rgba(255,255,255,.9) !important;
+  border: 1px solid #c2cbc6 !important;
+  border-radius: 6px !important;
+
+  color: #26332d !important;
+
+  box-shadow: 0 2px 6px rgba(0,0,0,.12) !important;
+}
+
+/* Mobile */
+@media(max-width:480px) {
+  .citymap {
+    height: 500px !important;
+  }
+
+  .map-marker .marker-name {
+    font-size: .52rem !important;
+  }
+
+  .map-marker .marker-icon {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
